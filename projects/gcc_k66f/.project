@@ -196,6 +196,16 @@
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/reverb_filter.h</locationURI>
 		</link>
 		<link>
+			<name>app/rotary_decoder.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/rotary_decoder.cpp</locationURI>
+		</link>
+		<link>
+			<name>app/rotary_decoder.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/rotary_decoder.h</locationURI>
+		</link>
+		<link>
 			<name>app/sequence_reader.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/sequence_reader.cpp</locationURI>
@@ -214,6 +224,26 @@
 			<name>app/sequencer.h</name>
 			<type>1</type>
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/sequencer.h</locationURI>
+		</link>
+		<link>
+			<name>app/sine_osc.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/sine_osc.cpp</locationURI>
+		</link>
+		<link>
+			<name>app/sine_osc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/sine_osc.h</locationURI>
+		</link>
+		<link>
+			<name>app/square_osc.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/square_osc.cpp</locationURI>
+		</link>
+		<link>
+			<name>app/square_osc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/square_osc.h</locationURI>
 		</link>
 		<link>
 			<name>argon/ar_classes.h</name>

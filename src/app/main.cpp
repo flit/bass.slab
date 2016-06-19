@@ -35,12 +35,15 @@
 #include "audio_filter.h"
 #include "audio_ramp.h"
 #include "asr_envelope.h"
+#include "sine_osc.h"
+#include "square_osc.h"
 #include "sequencer.h"
 #include "sequence_reader.h"
 #include "audio_mixer.h"
 #include "delay_line.h"
 #include "rbj_filter.h"
 #include "display.h"
+#include "rotary_decoder.h"
 #include "fsl_port.h"
 #include "fsl_gpio.h"
 #include "fsl_fxos.h"
@@ -72,80 +75,6 @@ inline T max3(T a, T b, T c)
     return (tmp > c) ? tmp : c;
 }
 
-class SineGenerator : public AudioFilter
-{
-public:
-    SineGenerator()
-    :   m_delta(0),
-        m_sinFreq(0),
-        m_phase(0),
-        m_env(),
-        m_previous(0),
-        m_seq(NULL)
-    {
-    }
-
-    void set_freq(float freq) { m_sinFreq = freq; }
-    void set_sequence(Sequencer * seq) { m_seq = seq; }
-    void enable_sustain(bool enable) { m_env.enable_sustain(enable); }
-    void set_attack(float seconds) { m_env.set_length_in_seconds(ASREnvelope::kAttack, seconds); }
-    void set_release(float seconds) { m_env.set_length_in_seconds(ASREnvelope::kRelease, seconds); }
-    void init();
-
-    virtual void process(float * samples, uint32_t count);
-
-protected:
-    float m_delta;
-    float m_sinFreq; // 80 Hz
-    float m_phase;
-    ASREnvelope m_env;
-    float m_previous;
-    Sequencer * m_seq;
-};
-
-class SquareGenerator : public AudioFilter
-{
-public:
-    SquareGenerator()
-    :   m_freq(0),
-        m_halfPhaseWidth(0),
-        m_phase(0),
-        m_env(),
-        m_previous(0),
-        m_seq(NULL)
-    {
-    }
-
-    void set_freq(float freq) { m_freq = freq; }
-    void set_sequence(Sequencer * seq) { m_seq = seq; }
-    void enable_sustain(bool enable) { m_env.enable_sustain(enable); }
-    void set_attack(float seconds) { m_env.set_length_in_seconds(ASREnvelope::kAttack, seconds); }
-    void set_release(float seconds) { m_env.set_length_in_seconds(ASREnvelope::kRelease, seconds); }
-    void init();
-
-    virtual void process(float * samples, uint32_t count);
-
-protected:
-    float m_freq; // 80 Hz
-    float m_halfPhaseWidth;
-    float m_phase;
-    ASREnvelope m_env;
-    float m_previous;
-    Sequencer * m_seq;
-};
-
-class RotaryDecoder
-{
-public:
-    RotaryDecoder();
-
-    int decode(uint8_t a, uint8_t b);
-
-private:
-    static const int s_encoderStates[];
-    uint8_t m_oldState;
-};
-
 //------------------------------------------------------------------------------
 // Prototypes
 //------------------------------------------------------------------------------
@@ -160,8 +89,6 @@ void init_board();
 //------------------------------------------------------------------------------
 // Variables
 //------------------------------------------------------------------------------
-
-const int RotaryDecoder::s_encoderStates[] = { 0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0 };
 
 uint32_t g_xtal0Freq = 8000000U;
 uint32_t g_xtal32Freq = 32768U;
@@ -198,178 +125,11 @@ DisplayController g_display;
 // Code
 //------------------------------------------------------------------------------
 
-RotaryDecoder::RotaryDecoder()
-:   m_oldState(0)
-{
-}
-
-int RotaryDecoder::decode(uint8_t a, uint8_t b)
-{
-    uint8_t newState = ((b & 1) << 1) | (a & 1);
-
-    m_oldState = ((m_oldState & 3) << 2) | newState;
-
-    return s_encoderStates[m_oldState];
-
-    // First, find the newEncoderState. This'll be a 2-bit value
-    // the msb is the state of the B pin. The lsb is the state
-    // of the A pin on the encoder.
-//     newEncoderState = (digitalRead(bPin)<<1) | (digitalRead(aPin));
-
-    // Now we pair oldEncoderState with new encoder state
-    // First we need to shift oldEncoder state left two bits.
-    // This'll put the last state in bits 2 and 3.
-//     oldEncoderState <<= 2;
-
-    // Mask out everything in oldEncoderState except for the previous state
-//     oldEncoderState &= 0xC0;
-
-    // Now add the newEncoderState. oldEncoderState will now be of
-    // the form: 0b0000(old B)(old A)(new B)(new A)
-//     oldEncoderState |= newEncoderState; // add filteredport value
-}
-
-// void encoder_debounce(ar_timer_t * timer, void * arg)
-// {
-//     int a = g_a;
-//     int b = g_b;
-// //     printf("encoder: a=%d, b=%d\r\n", a, b);
-//
-//     int delta = g_decoder.decode(a, b);
-//     g_value += delta;
-//     if (g_value < 0)
-//     {
-//         g_value = 0;
-//     }
-//     else if (g_value > 100)
-//     {
-//         g_value = 100;
-//     }
-// }
-
 void my_timer_fn(Ar::Timer * t, void * arg)
 {
     GPIO_TogglePinsOutput(PIN_BLUE_LED_GPIO, PIN_BLUE_LED_BIT);
 }
 Ar::Timer g_myTimer("mine", my_timer_fn, 0, kArPeriodicTimer, 1500);
-
-void SineGenerator::init()
-{
-    m_delta = 2.0f * PI * (m_sinFreq / m_sampleRate);
-
-    m_env.set_sample_rate(get_sample_rate());
-    m_env.set_curve_type(ASREnvelope::kAttack, AudioRamp::kLinear);
-    m_env.set_curve_type(ASREnvelope::kRelease, AudioRamp::kLinear);
-    m_env.set_peak(1.0f);
-}
-
-void SineGenerator::process(float * samples, uint32_t count)
-{
-    // Check for a trigger.
-    Sequencer::Event triggerEvent = m_seq->get_next_event(count);
-    int32_t triggerSample = triggerEvent.m_timestamp;
-    if (triggerEvent.m_event == Sequencer::kNoteStopEvent)
-    {
-        m_env.set_release_offset(triggerSample);
-        triggerSample = -1;
-    }
-    bool needsRestartOnZeroCrossing = false;
-    float previous = m_previous;
-    float * sample = samples;
-    int i;
-    for (i = 0; i < count; ++i)
-    {
-        // Detect trigger point.
-        if (triggerSample == i)
-        {
-            needsRestartOnZeroCrossing = true;
-        }
-
-        float f = arm_sin_f32(m_phase);
-        float v = f * m_env.next();
-        *sample++ = v;
-
-        // After triggered, restart on a zero crossing to prevent popping.
-        bool zeroCrossing = ((previous >= 0.0f && v <= 0.0f) || (previous <= 0.0f && v >= 0.0f));
-        if (needsRestartOnZeroCrossing && zeroCrossing)
-        {
-            m_env.trigger();
-            m_phase = 0.0f;
-            needsRestartOnZeroCrossing = false;
-        }
-
-        m_phase += m_delta;
-        if (m_phase >= 2.0f * PI)
-        {
-            m_phase = 0.0f;
-        }
-
-        previous = v;
-    }
-
-    m_previous = previous;
-}
-
-void SquareGenerator::init()
-{
-    m_halfPhaseWidth = m_sampleRate / m_freq / 2.0f;
-
-    m_env.set_sample_rate(get_sample_rate());
-    m_env.set_curve_type(ASREnvelope::kAttack, AudioRamp::kLinear);
-    m_env.set_curve_type(ASREnvelope::kRelease, AudioRamp::kLinear);
-    m_env.set_peak(1.0f);
-}
-
-void SquareGenerator::process(float * samples, uint32_t count)
-{
-    // Check for a trigger.
-    Sequencer::Event triggerEvent = m_seq->get_next_event(count);
-    int32_t triggerSample = triggerEvent.m_timestamp;
-    if (triggerEvent.m_event == Sequencer::kNoteStopEvent)
-    {
-        m_env.set_release_offset(triggerSample);
-        triggerSample = -1;
-    }
-    bool needsRestartOnZeroCrossing = false;
-    float previous = m_previous;
-    float * sample = samples;
-    int i;
-    for (i = 0; i < count; ++i)
-    {
-        // Detect trigger point.
-        if (triggerSample == i)
-        {
-            needsRestartOnZeroCrossing = true;
-        }
-
-        float f = 1.0f;
-        if (m_phase > m_halfPhaseWidth)
-        {
-            f = -1.0f;
-        }
-        float v = f * m_env.next();
-        *sample++ = v;
-
-        // After triggered, restart on a zero crossing to prevent popping.
-        bool zeroCrossing = ((previous >= 0.0f && v <= 0.0f) || (previous <= 0.0f && v >= 0.0f));
-        if (needsRestartOnZeroCrossing && zeroCrossing)
-        {
-            m_env.trigger();
-            m_phase = 0.0f;
-            needsRestartOnZeroCrossing = false;
-        }
-
-        m_phase += 1.0f;
-        if (m_phase >= m_halfPhaseWidth * 2.0f)
-        {
-            m_phase = 0.0f;
-        }
-
-        previous = v;
-    }
-
-    m_previous = previous;
-}
 
 // template <typename T, int N>
 // class RingBuffer
