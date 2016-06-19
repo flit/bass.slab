@@ -176,6 +176,11 @@
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/main.cpp</locationURI>
 		</link>
 		<link>
+			<name>app/nanolib_stubs.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/nanolib_stubs.c</locationURI>
+		</link>
+		<link>
 			<name>app/rbj_filter.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/rbj_filter.cpp</locationURI>
@@ -319,6 +324,16 @@
 			<name>ksdk/fsl_common.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/src/ksdk/fsl_common.h</locationURI>
+		</link>
+		<link>
+			<name>ksdk/fsl_debug_console.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/ksdk/fsl_debug_console.c</locationURI>
+		</link>
+		<link>
+			<name>ksdk/fsl_debug_console.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/ksdk/fsl_debug_console.h</locationURI>
 		</link>
 		<link>
 			<name>ksdk/fsl_dmamux.c</name>

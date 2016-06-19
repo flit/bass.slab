@@ -65,6 +65,12 @@
 #endif
 #include <math.h>
 #include "fsl_debug_console.h"
+#include "fsl_device_registers.h"
+
+#if defined(K66F18_SERIES)
+#undef FSL_FEATURE_SOC_LPUART_COUNT
+#define FSL_FEATURE_SOC_LPUART_COUNT 0
+#endif
 
 #if defined(FSL_FEATURE_SOC_UART_COUNT) && (FSL_FEATURE_SOC_UART_COUNT > 0)
 #include "fsl_uart.h"

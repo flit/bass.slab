@@ -38,6 +38,34 @@
 #define BOARD_SDSPI_SPI_BASE SPI0_BASE
 #define BOARD_SDSPI_SPI_PCS_NUMBER 0
 
+// I2C0 (accelerometer)
+
+// I2C0 SDA
+#define PIN_I2C0_SDA_PORT   (PORTD)
+#define PIN_I2C0_SDA_GPIO   (GPIOD)
+#define PIN_I2C0_SDA_BIT    (8)
+#define PIN_I2C0_SDA        (1 << PIN_I2C0_SDA_BIT)
+
+// I2C0 SCL
+#define PIN_I2C0_SCL_PORT   (PORTD)
+#define PIN_I2C0_SCL_GPIO   (GPIOD)
+#define PIN_I2C0_SCL_BIT    (9)
+#define PIN_I2C0_SCL        (1 << PIN_I2C0_SCL_BIT)
+
+// I2C1 (audio codec and proximity sensor)
+
+// I2C1 SDA
+#define PIN_I2C1_SDA_PORT   (PORTC)
+#define PIN_I2C1_SDA_GPIO   (GPIOC)
+#define PIN_I2C1_SDA_BIT    (11)
+#define PIN_I2C1_SDA        (1 << PIN_I2C1_SDA_BIT)
+
+// I2C1 SCL
+#define PIN_I2C1_SCL_PORT   (PORTC)
+#define PIN_I2C1_SCL_GPIO   (GPIOC)
+#define PIN_I2C1_SCL_BIT    (10)
+#define PIN_I2C1_SCL        (1 << PIN_I2C1_SCL_BIT)
+
 // RGB LED
 #define PIN_RED_LED_PORT    (PORTC)
 #define PIN_RED_LED_GPIO    (GPIOC)
@@ -94,16 +122,6 @@
 // Proximity I2C
 #define PROXI2C_BASE        (I2C1)
 
-#define PIN_PROX_SDA_PORT   (PORTC)
-#define PIN_PROX_SDA_GPIO   (GPIOC)
-#define PIN_PROX_SDA_BIT    (11)
-#define PIN_PROX_SDA        (1 << PIN_PROX_SDA_BIT)
-
-#define PIN_PROX_SCL_PORT   (PORTC)
-#define PIN_PROX_SCL_GPIO   (GPIOC)
-#define PIN_PROX_SCL_BIT    (10)
-#define PIN_PROX_SCL        (1 << PIN_PROX_SCL_BIT)
-
 // Rotary Encoder
 // A = FTM1_QD_PHA
 #define PIN_ENCA_PORT       (PORTA)
@@ -134,6 +152,42 @@
 #define PIN_WAKEUP_BIT      (4)
 #define PIN_WAKEUP          (1 << PIN_WAKEUP_BIT)
 
+// SAI
+#define PIN_I2S_MCLK_PORT   (PORTC)
+#define PIN_I2S_MCLK_GPIO   (GPIOC)
+#define PIN_I2S_MCLK_BIT    (6)
+#define PIN_I2S_MCLK        (1 << PIN_I2S_MCLK_BIT)
+
+#define PIN_I2S_TX_WCLK_PORT   (PORTE)
+#define PIN_I2S_TX_WCLK_GPIO   (GPIOE)
+#define PIN_I2S_TX_WCLK_BIT    (11)
+#define PIN_I2S_TX_WCLK        (1 << PIN_I2S_TX_WCLK_BIT)
+
+#define PIN_I2S_TX_BCLK_PORT   (PORTE)
+#define PIN_I2S_TX_BCLK_GPIO   (GPIOE)
+#define PIN_I2S_TX_BCLK_BIT    (12)
+#define PIN_I2S_TX_BCLK        (1 << PIN_I2S_TX_BCLK_BIT)
+
+#define PIN_I2S_TXD_PORT   (PORTC)
+#define PIN_I2S_TXD_GPIO   (GPIOC)
+#define PIN_I2S_TXD_BIT    (1)
+#define PIN_I2S_TXD        (1 << PIN_I2S_TXD_BIT)
+
+#define PIN_I2S_RX_WCLK_PORT   (PORTE)
+#define PIN_I2S_RX_WCLK_GPIO   (GPIOE)
+#define PIN_I2S_RX_WCLK_BIT    (8)
+#define PIN_I2S_RX_WCLK        (1 << PIN_I2S_RX_WCLK_BIT)
+
+#define PIN_I2S_RX_BCLK_PORT   (PORTE)
+#define PIN_I2S_RX_BCLK_GPIO   (GPIOE)
+#define PIN_I2S_RX_BCLK_BIT    (9)
+#define PIN_I2S_RX_BCLK        (1 << PIN_I2S_RX_BCLK_BIT)
+
+#define PIN_I2S_RXD_PORT   (PORTE)
+#define PIN_I2S_RXD_GPIO   (GPIOE)
+#define PIN_I2S_RXD_BIT    (7)
+#define PIN_I2S_RXD        (1 << PIN_I2S_RXD_BIT)
+
 
 // ADC inputs
 
@@ -157,6 +211,7 @@
 // Prototypes
 //------------------------------------------------------------------------------
 
+void init_debug_console();
 void init_board();
 
 #endif // __BOARD_H__

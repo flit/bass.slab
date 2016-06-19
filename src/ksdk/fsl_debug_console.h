@@ -57,7 +57,7 @@
 
 /*! @brief Definition to select sdk or toolchain printf, scanf. */
 #ifndef SDK_DEBUGCONSOLE
-#define SDK_DEBUGCONSOLE 1U
+#define SDK_DEBUGCONSOLE 0U
 #endif
 
 /*! @brief Definition to printf float number. */

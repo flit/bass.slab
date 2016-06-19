@@ -116,6 +116,8 @@ fxos_handle_t g_fxos;
 SequenceInfo * g_firstSequence = 0;
 uint32_t g_sequenceCount = 0;
 
+Ar::Thread * g_initThread = NULL;
+
 Ar::ThreadWithStack<1024> g_accelThread("accel", accel_thread, 0, 120, kArSuspendThread);
 Ar::ThreadWithStack<1024> g_potsThread("pots", pots_thread, 0, 120, kArSuspendThread);
 
@@ -358,10 +360,8 @@ void init_fs()
     g_kickSeq.set_sequence(g_firstSequence->channels[1]);
 }
 
-int main(void)
+void init_thread(void * arg)
 {
-    printf("Hello...\r\n");
-
     init_board();
     init_audio_out();
 //     init_fs();
@@ -373,12 +373,17 @@ int main(void)
 //     g_potsThread.resume();
     g_display.start();
 
-    ar_kernel_run();
+    delete g_initThread;
+}
 
-//     Ar::Thread::getCurrent()->suspend();
-//     while (1)
-//     {
-//     }
+int main(void)
+{
+    init_debug_console();
+    printf("Hello...\r\n");
+
+    g_initThread = new Ar::Thread("init", init_thread, 0, NULL, 1500, 200, kArStartThread);
+
+    ar_kernel_run();
 }
 
 //------------------------------------------------------------------------------

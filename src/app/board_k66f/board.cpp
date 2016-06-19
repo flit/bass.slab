@@ -31,6 +31,7 @@
 #include "fsl_port.h"
 #include "fsl_gpio.h"
 #include "fsl_clock.h"
+#include "fsl_debug_console.h"
 #include "clock_config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +40,15 @@
 //------------------------------------------------------------------------------
 // Code
 //------------------------------------------------------------------------------
+
+void init_debug_console()
+{
+    // Set PTB16 and PTB17
+    CLOCK_EnableClock(kCLOCK_PortB);
+    PORT_SetPinMux(PORTB, 16, kPORT_MuxAlt3);
+    PORT_SetPinMux(PORTB, 17, kPORT_MuxAlt3);
+    DbgConsole_Init((uint32_t)UART0, 115200, DEBUG_CONSOLE_DEVICE_TYPE_UART, CLOCK_GetCoreSysClkFreq());
+}
 
 void init_board()
 {
@@ -54,7 +64,7 @@ void init_board()
     CLOCK_EnableClock(kCLOCK_PortD);
     CLOCK_EnableClock(kCLOCK_PortE);
 
-    // I2C0 pins
+    // I2C0 and I2C1 pins
     const port_pin_config_t pinConfig = {
         .pullSelect = kPORT_PullDisable,
         .slewRate = kPORT_FastSlewRate,
@@ -63,14 +73,19 @@ void init_board()
         .driveStrength = kPORT_LowDriveStrength,
         .mux = kPORT_MuxAlt2,
     };
-    PORT_SetMultiplePinsConfig(PORTB, (1 << 3)|(1 << 2), &pinConfig);
+    PORT_SetPinConfig(PIN_I2C0_SDA_PORT, PIN_I2C0_SDA_BIT, &pinConfig);
+    PORT_SetPinConfig(PIN_I2C0_SCL_PORT, PIN_I2C0_SCL_BIT, &pinConfig);
+    PORT_SetPinConfig(PIN_I2C1_SDA_PORT, PIN_I2C1_SDA_BIT, &pinConfig);
+    PORT_SetPinConfig(PIN_I2C1_SCL_PORT, PIN_I2C1_SCL_BIT, &pinConfig);
 
     // SAI pins
-    PORT_SetPinMux(PORTC, 8, kPORT_MuxAlt4);
-    PORT_SetPinMux(PORTA, 5, kPORT_MuxAlt6);
-    PORT_SetPinMux(PORTA, 12, kPORT_MuxAlt6);
-    PORT_SetPinMux(PORTA, 13, kPORT_MuxAlt6);
-    PORT_SetPinMux(PORTC, 5, kPORT_MuxAlt4);
+    PORT_SetPinMux(PIN_I2S_MCLK_PORT, PIN_I2S_MCLK_BIT, kPORT_MuxAlt6);
+    PORT_SetPinMux(PIN_I2S_TXD_PORT, PIN_I2S_TXD_BIT, kPORT_MuxAlt6);
+    PORT_SetPinMux(PIN_I2S_TX_WCLK_PORT, PIN_I2S_TX_WCLK_BIT, kPORT_MuxAlt4);
+    PORT_SetPinMux(PIN_I2S_TX_BCLK_PORT, PIN_I2S_TX_BCLK_BIT, kPORT_MuxAlt4);
+    PORT_SetPinMux(PIN_I2S_RX_WCLK_PORT, PIN_I2S_RX_WCLK_BIT, kPORT_MuxAlt4);
+    PORT_SetPinMux(PIN_I2S_RX_BCLK_PORT, PIN_I2S_RX_BCLK_BIT, kPORT_MuxAlt4);
+    PORT_SetPinMux(PIN_I2S_RXD_PORT, PIN_I2S_RXD_BIT, kPORT_MuxAlt4);
 
     // LED pins
     // PTC9 = Red
@@ -93,18 +108,10 @@ void init_board()
     // PTD1 = SPI0_SCK
     // PTD2 = SPI0_SOUT
     // PTD3 = SPI0_SIN
-    // PTB16 = SD_CARD_DETECT
     PORT_SetPinMux(PORTD, 0, kPORT_MuxAlt2);
     PORT_SetPinMux(PORTD, 1, kPORT_MuxAlt2);
     PORT_SetPinMux(PORTD, 2, kPORT_MuxAlt2);
     PORT_SetPinMux(PORTD, 3, kPORT_MuxAlt2);
-//     PORT_SetPinMux(PORTB, 16, kPORT_MuxAsGpio);
-
-//     const gpio_pin_config_t gpioIn = {
-//         .pinDirection = kGPIO_DigitalInput,
-//         .outputLogic = 0,
-//     };
-//     GPIO_PinInit(GPIOB, 16, &gpioIn);
 
     // Shift register pins
     // PTB10 = LATCH
@@ -131,7 +138,44 @@ void init_board()
     GPIO_PinInit(PIN_ROW_A2_GPIO, PIN_ROW_A2_BIT, &gpioOut0);
     GPIO_PinInit(PIN_ROW_EN_GPIO, PIN_ROW_EN_BIT, &gpioOut0);
 
+    // Buttons
+    PORT_SetPinMux(PIN_BTN1_PORT, PIN_BTN1_BIT, kPORT_MuxAsGpio);
+    PORT_SetPinMux(PIN_BTN2_PORT, PIN_BTN2_BIT, kPORT_MuxAsGpio);
+    PORT_SetPinMux(PIN_WAKEUP_PORT, PIN_WAKEUP_BIT, kPORT_MuxAsGpio);
 
+    const gpio_pin_config_t gpioIn = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0,
+    };
+    GPIO_PinInit(PIN_BTN1_GPIO, PIN_BTN1_BIT, &gpioIn);
+    GPIO_PinInit(PIN_BTN2_GPIO, PIN_BTN2_BIT, &gpioIn);
+    GPIO_PinInit(PIN_WAKEUP_GPIO, PIN_WAKEUP_BIT, &gpioIn);
+
+    PORT_SetPinInterruptConfig(PIN_BTN1_PORT, PIN_BTN1_BIT, kPORT_InterruptFallingEdge);
+    PORT_SetPinInterruptConfig(PIN_BTN2_PORT, PIN_BTN2_BIT, kPORT_InterruptFallingEdge);
+    PORT_SetPinInterruptConfig(PIN_WAKEUP_PORT, PIN_WAKEUP_BIT, kPORT_InterruptFallingEdge);
+
+    PORT_EnablePinsDigitalFilter(PIN_BTN1_PORT, PIN_BTN1_BIT, true);
+    PORT_EnablePinsDigitalFilter(PIN_BTN2_PORT, PIN_BTN2_BIT, true);
+    PORT_EnablePinsDigitalFilter(PIN_WAKEUP_PORT, PIN_WAKEUP_BIT, true);
+
+    // Rotary encoder
+    PORT_SetPinMux(PIN_ENCA_PORT, PIN_ENCA_BIT, kPORT_MuxAsGpio);
+    PORT_SetPinMux(PIN_ENCB_PORT, PIN_ENCB_BIT, kPORT_MuxAsGpio);
+    GPIO_PinInit(PIN_ENCA_GPIO, PIN_ENCA_BIT, &gpioIn);
+    GPIO_PinInit(PIN_ENCB_GPIO, PIN_ENCB_BIT, &gpioIn);
+    PORT_SetPinInterruptConfig(PIN_ENCA_PORT, PIN_ENCA_BIT, kPORT_InterruptEitherEdge);
+    PORT_SetPinInterruptConfig(PIN_ENCB_PORT, PIN_ENCB_BIT, kPORT_InterruptEitherEdge);
+    PORT_EnablePinsDigitalFilter(PIN_ENCA_PORT, PIN_ENCA_BIT, true);
+    PORT_EnablePinsDigitalFilter(PIN_ENCB_PORT, PIN_ENCB_BIT, true);
+
+    // Set up digital filtering on button pins.
+    port_digital_filter_config_t filterConfig = {
+        .digitalFilterWidth = 20,
+        .clockSource = kPORT_LpoClock,
+    };
+    PORT_SetDigitalFilterConfig(PIN_BTN1_PORT, &filterConfig);
+    PORT_SetDigitalFilterConfig(PIN_WAKEUP_PORT, &filterConfig);
 }
 
 //------------------------------------------------------------------------------
