@@ -90,9 +90,6 @@ void init_board();
 // Variables
 //------------------------------------------------------------------------------
 
-uint32_t g_xtal0Freq = 8000000U;
-uint32_t g_xtal32Freq = 32768U;
-
 float g_audioBuf[BUFFER_SIZE];
 float g_mixBuf[BUFFER_SIZE];
 int16_t g_outBuf[BUFFER_NUM][BUFFER_SIZE * CHANNEL_NUM];
