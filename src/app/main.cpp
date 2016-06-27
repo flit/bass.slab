@@ -414,6 +414,8 @@ void init_thread(void * arg)
 {
     init_board();
 
+    printf("Hello...\r\n");
+
     init_i2c0();
     init_i2c1();
     init_audio_out();
@@ -431,10 +433,7 @@ void init_thread(void * arg)
 
 int main(void)
 {
-    init_debug_console();
-    printf("Hello...\r\n");
-
-    g_initThread = new Ar::Thread("init", init_thread, 0, NULL, 1500, 200, kArStartThread);
+    g_initThread = new Ar::Thread("init", init_thread, 0, NULL, 1500, 60, kArStartThread);
 
     ar_kernel_run();
 }

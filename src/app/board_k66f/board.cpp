@@ -61,6 +61,8 @@ void init_board()
 
     BOARD_BootClockHSRUN();
 
+    init_debug_console();
+
     CLOCK_EnableClock(kCLOCK_PortA);
     CLOCK_EnableClock(kCLOCK_PortB);
     CLOCK_EnableClock(kCLOCK_PortC);
