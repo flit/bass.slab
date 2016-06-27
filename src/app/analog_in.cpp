@@ -59,7 +59,8 @@ void AnalogIn::init()
     {
         adc16_config_t config;
         ADC16_GetDefaultConfig(&config);
-        config.resolution = kADC16_Resolution16Bit;
+        config.resolution = kADC16_Resolution12or13Bit;
+        config.longSampleMode = kADC16_LongSampleCycle24;
         ADC16_Init(m_base, &config);
         ADC16_DoAutoCalibration(m_base);
         ADC16_SetHardwareAverage(m_base, kADC16_HardwareAverageCount16);

@@ -82,7 +82,7 @@
 
 #if !defined(AR_IDLE_THREAD_STACK_SIZE)
     //! @brief Size in bytes of the idle and timer thread's stack.
-    #define AR_IDLE_THREAD_STACK_SIZE (512)
+    #define AR_IDLE_THREAD_STACK_SIZE (2048)
 #endif // AR_IDLE_THREAD_STACK_SIZE
 
 //@}

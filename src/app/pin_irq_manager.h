@@ -26,31 +26,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#if !defined(_ROTARY_DECODER_H_)
-#define _ROTARY_DECODER_H_
+#if !defined(_PIN_IRQ_MANAGER_H_)
+#define _PIN_IRQ_MANAGER_H_
 
-#include <stdint.h>
+#include "fsl_device_registers.h"
 
 //------------------------------------------------------------------------------
 // Definitions
 //------------------------------------------------------------------------------
 
 /*!
- * @brief Rotary encoder decoder.
+ * @brief
  */
-class RotaryDecoder
+class PinIrqManager
 {
 public:
-    RotaryDecoder();
+    enum {
+        kPortA,
+        kPortB,
+        kPortC,
+        kPortD,
+        kPortE,
+        kMaxPorts,
+    };
 
-    int decode(uint8_t a, uint8_t b);
+    typedef void (*pin_callback_t)(PORT_Type * port, uint32_t pin, void * userData);
+
+    static PinIrqManager & get() { return s_manager; }
+
+    PinIrqManager();
+
+    void connect(PORT_Type * port, uint32_t pin, pin_callback_t callback, void * userData);
+    void disconnect(PORT_Type * port, uint32_t pin);
+
+    void handle_irq(PORT_Type * port);
 
 private:
-    static const int s_encoderStates[];
-    uint8_t m_oldState;
+    static const uint32_t kMaxPinsPerPort = 32;
+
+    static PinIrqManager s_manager;
+
+    struct PinInfo {
+        pin_callback_t callback;
+        void * userData;
+    };
+
+    PinInfo m_pins[kMaxPorts][kMaxPinsPerPort];
+
+    uint32_t portToIndex(PORT_Type * port);
+
 };
 
-#endif // _ROTARY_DECODER_H_
+#endif // _PIN_IRQ_MANAGER_H_
 //------------------------------------------------------------------------------
 // EOF
 //------------------------------------------------------------------------------

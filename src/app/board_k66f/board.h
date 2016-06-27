@@ -35,10 +35,24 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+// SDSPI microSD interface
 #define BOARD_SDSPI_SPI_BASE SPI0_BASE
 #define BOARD_SDSPI_SPI_PCS_NUMBER 0
 
-// I2C0 (accelerometer)
+// Device I2C ports and addresses
+#define BOARD_FXOS_I2C_BASE (I2C0)
+#define BOARD_FXOS_I2C_ADDR (0x1d)
+
+#define BOARD_GYRO_I2C_BASE (I2C0)
+#define BOARD_GYRO_I2C_ADDR (0x21)
+
+#define BOARD_CODEC_I2C_BASE (I2C1)
+#define BOARD_CODEC_I2C_ADDR (0x1a)
+
+#define BOARD_PROX_I2C_BASE (I2C1)
+#define BOARD_PROX_I2C_ADDR (0x39)
+
+// I2C0 (accelerometer and gyro)
 
 // I2C0 SDA
 #define PIN_I2C0_SDA_PORT   (PORTD)
@@ -118,9 +132,6 @@
 #define PIN_INT_GPIO        (GPIOC)
 #define PIN_INT_BIT         (0)
 #define PIN_INT             (1 << PIN_INT_BIT)
-
-// Proximity I2C
-#define PROXI2C_BASE        (I2C1)
 
 // Rotary Encoder
 // A = FTM1_QD_PHA

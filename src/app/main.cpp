@@ -44,6 +44,7 @@
 #include "rbj_filter.h"
 #include "display.h"
 #include "rotary_decoder.h"
+#include "pin_irq_manager.h"
 #include "fsl_port.h"
 #include "fsl_gpio.h"
 #include "fsl_fxos.h"
@@ -83,7 +84,6 @@ inline T max3(T a, T b, T c)
 
 void accel_thread(void * arg);
 void pots_thread(void * arg);
-void encoder_debounce(ar_timer_t * timer, void * arg);
 void audio_init_thread(void * arg);
 void init_thread(void * arg);
 
@@ -93,6 +93,12 @@ void init_audio_out();
 void init_audio_synth();
 void init_fs();
 void init_board();
+
+void button_handler(PORT_Type * port, uint32_t pin, void * userData);
+void rotary_handler(PORT_Type * port, uint32_t pin, void * userData);
+
+void my_timer_fn(Ar::Timer * t, void * arg);
+void encoder_debounce(Ar::Timer * timer, void * arg);
 
 //------------------------------------------------------------------------------
 // Variables
@@ -124,10 +130,16 @@ uint32_t g_sequenceCount = 0;
 Ar::Thread * g_audioInitThread = NULL;
 Ar::Thread * g_initThread = NULL;
 
-Ar::ThreadWithStack<1024> g_accelThread("accel", accel_thread, 0, 120, kArSuspendThread);
-Ar::ThreadWithStack<1024> g_potsThread("pots", pots_thread, 0, 120, kArSuspendThread);
+Ar::ThreadWithStack<2048> g_accelThread("accel", accel_thread, 0, 120, kArSuspendThread);
+Ar::ThreadWithStack<2048> g_potsThread("pots", pots_thread, 0, 120, kArSuspendThread);
 
 DisplayController g_display;
+RotaryDecoder g_rotary;
+
+Ar::Timer g_myTimer("mine", my_timer_fn, 0, kArPeriodicTimer, 1500);
+Ar::Timer g_rotaryTimer("mine", encoder_debounce, 0, kArOneShotTimer, 50);
+
+uint32_t g_value = 0;
 
 //------------------------------------------------------------------------------
 // Code
@@ -137,7 +149,6 @@ void my_timer_fn(Ar::Timer * t, void * arg)
 {
     GPIO_TogglePinsOutput(PIN_BLUE_LED_GPIO, PIN_BLUE_LED_BIT);
 }
-Ar::Timer g_myTimer("mine", my_timer_fn, 0, kArPeriodicTimer, 1500);
 
 // template <typename T, int N>
 // class RingBuffer
@@ -168,7 +179,7 @@ void accel_thread(void * arg)
     memset(&g_fxos, 0, sizeof(g_fxos));
     g_fxos.base = I2C0;
     g_fxos.i2cHandle = &g_i2cHandle;
-    g_fxos.xfer.slaveAddress = 0x1c;
+    g_fxos.xfer.slaveAddress = BOARD_FXOS_I2C_ADDR;
     FXOS_Init(&g_fxos);
 
     const int kHistoryCount = 50;
@@ -182,9 +193,9 @@ void accel_thread(void * arg)
         status_t status = FXOS_ReadSensorData(&g_fxos, &data);
         if (status == kStatus_Success)
         {
-//             printf("acc[x=%6d y=%6d z=%6d] mag[x=%6d y=%6d z=%6d]\r\n",
-//                    data.accelX, data.accelY, data.accelZ,
-//                    data.magX, data.magY, data.magZ);
+            printf("acc[x=%6d y=%6d z=%6d] mag[x=%6d y=%6d z=%6d]\r\n",
+                   data.accelX, data.accelY, data.accelZ,
+                   data.magX, data.magY, data.magZ);
 
             // Get maximum accel in positive or negative.
 //             data.accelZ -= 16384; // subtract out gravity (device must be stationary).
@@ -221,28 +232,70 @@ void accel_thread(void * arg)
 
 //             float g = float(average) / 16384.0f;
             float feedback = average; // / 2.0f;
+            printf("feedback = %g\r\n", feedback);
             g_delay.set_feedback(feedback);
         }
 
-        Ar::Thread::sleep(20);
+        Ar::Thread::sleep(200);
     }
 }
 
 void pots_thread(void * arg)
 {
+    AnalogIn tunePot(TUNE_ADC, TUNE_CHANNEL);
     AnalogIn pot1(POT1_ADC, POT1_CHANNEL);
     AnalogIn pot2(POT2_ADC, POT2_CHANNEL);
+    tunePot.init();
     pot1.init();
     pot2.init();
 
+    uint32_t lastTune = ~0;
+    uint32_t lastValue1 = ~0;
+    uint32_t lastValue2 = ~0;
     while (1)
     {
+        uint32_t tuneValue = tunePot.read();
         uint32_t value1 = pot1.read();
         uint32_t value2 = pot2.read();
-        printf("pot1 = %d; pot2 = %d\n", value1, value2);
+        if (tuneValue != lastTune || value1 != lastValue1 || value2 != lastValue2)
+        {
+            lastTune = tuneValue;
+        	lastValue1 = value1;
+        	lastValue2 = value2;
+//         	printf("tune = %d; pot1 = %d; pot2 = %d\r\n", tuneValue, value1, value2);
+        }
 
         Ar::Thread::sleep(200);
     }
+}
+
+void button_handler(PORT_Type * port, uint32_t pin, void * userData)
+{
+    printf("button %d pressed\n", pin);
+}
+
+void encoder_debounce(Ar::Timer * timer, void * arg)
+{
+    int a = GPIO_ReadPinInput(PIN_ENCA_GPIO, PIN_ENCA_BIT);
+    int b = GPIO_ReadPinInput(PIN_ENCB_GPIO, PIN_ENCB_BIT);
+    printf("encoder: a=%d, b=%d\r\n", a, b);
+
+    int delta = g_rotary.decode(a, b);
+    g_value += delta;
+    if (g_value < 0)
+    {
+        g_value = 0;
+    }
+    else if (g_value > 100)
+    {
+        g_value = 100;
+    }
+    printf("g_value = %d\r\n", g_value);
+}
+
+void rotary_handler(PORT_Type * port, uint32_t pin, void * userData)
+{
+    g_rotaryTimer.start();
 }
 
 void init_i2c0()
@@ -410,6 +463,21 @@ void init_fs()
     g_kickSeq.set_sequence(g_firstSequence->channels[1]);
 }
 
+void test_prox()
+{
+    uint8_t data;
+    i2c_master_transfer_t xfer = {0};
+    xfer.slaveAddress = 0x39;
+    xfer.direction = kI2C_Read;
+    xfer.subaddress = 0x80 | 0x12;
+    xfer.subaddressSize = 1;
+    xfer.data = &data;
+    xfer.dataSize = sizeof(data);
+
+    status_t result = I2C_MasterTransferBlocking(BOARD_PROX_I2C_BASE, &xfer);
+    printf("result = %d; data = 0x%02x\r\n", result, data);
+}
+
 void init_thread(void * arg)
 {
     init_board();
@@ -420,15 +488,24 @@ void init_thread(void * arg)
     init_i2c1();
     init_audio_out();
 //     init_fs();
-    g_display.init();
+//     g_display.init();
 
-    g_myTimer.start();
+    test_prox();
+
+    PinIrqManager::get().connect(PIN_BTN1_PORT, PIN_BTN1_BIT, button_handler, NULL);
+    PinIrqManager::get().connect(PIN_BTN2_PORT, PIN_BTN2_BIT, button_handler, NULL);
+    PinIrqManager::get().connect(PIN_WAKEUP_PORT, PIN_WAKEUP_BIT, button_handler, NULL);
+
+    PinIrqManager::get().connect(PIN_ENCA_PORT, PIN_ENCA_BIT, rotary_handler, NULL);
+    PinIrqManager::get().connect(PIN_ENCB_PORT, PIN_ENCB_BIT, rotary_handler, NULL);
+
+//     g_myTimer.start();
     g_audioOut.start();
 //     g_accelThread.resume();
-//     g_potsThread.resume();
-    g_display.start();
+    g_potsThread.resume();
+//     g_display.start();
 
-    delete g_initThread;
+//     delete g_initThread;
 }
 
 int main(void)

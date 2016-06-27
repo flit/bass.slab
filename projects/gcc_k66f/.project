@@ -181,6 +181,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/src/app/nanolib_stubs.c</locationURI>
 		</link>
 		<link>
+			<name>app/pin_irq_manager.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/pin_irq_manager.cpp</locationURI>
+		</link>
+		<link>
+			<name>app/pin_irq_manager.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/pin_irq_manager.h</locationURI>
+		</link>
+		<link>
 			<name>app/rbj_filter.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/rbj_filter.cpp</locationURI>
