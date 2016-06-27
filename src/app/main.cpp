@@ -47,6 +47,8 @@
 #include "fsl_port.h"
 #include "fsl_gpio.h"
 #include "fsl_fxos.h"
+#include "fsl_i2c.h"
+#include "Dialog7212.h"
 #include "arm_math.h"
 #include <stdio.h>
 #include <math.h>
@@ -82,7 +84,13 @@ inline T max3(T a, T b, T c)
 void accel_thread(void * arg);
 void pots_thread(void * arg);
 void encoder_debounce(ar_timer_t * timer, void * arg);
+void audio_init_thread(void * arg);
+void init_thread(void * arg);
+
+void init_i2c0();
+void init_i2c1();
 void init_audio_out();
+void init_audio_synth();
 void init_fs();
 void init_board();
 
@@ -113,6 +121,7 @@ fxos_handle_t g_fxos;
 SequenceInfo * g_firstSequence = 0;
 uint32_t g_sequenceCount = 0;
 
+Ar::Thread * g_audioInitThread = NULL;
 Ar::Thread * g_initThread = NULL;
 
 Ar::ThreadWithStack<1024> g_accelThread("accel", accel_thread, 0, 120, kArSuspendThread);
@@ -236,7 +245,25 @@ void pots_thread(void * arg)
     }
 }
 
-void init_audio_out()
+void init_i2c0()
+{
+    uint32_t i2cSourceClock = CLOCK_GetFreq(kCLOCK_BusClk);
+    i2c_master_config_t i2cConfig = {0};
+    I2C_MasterGetDefaultConfig(&i2cConfig);
+    I2C_MasterInit(I2C0, &i2cConfig, i2cSourceClock);
+    I2C_MasterTransferCreateHandle(I2C0, &g_i2cHandle, NULL, NULL);
+}
+
+void init_i2c1()
+{
+    uint32_t i2cSourceClock = CLOCK_GetFreq(kCLOCK_BusClk);
+    i2c_master_config_t i2cConfig = {0};
+    I2C_MasterGetDefaultConfig(&i2cConfig);
+    I2C_MasterInit(I2C1, &i2cConfig, i2cSourceClock);
+//     I2C_MasterTransferCreateHandle(I2C0, &g_i2cHandle, NULL, NULL);
+}
+
+void audio_init_thread(void * arg)
 {
     // Configure the audio format
     sai_transfer_format_t format;
@@ -248,16 +275,42 @@ void init_audio_out()
     format.stereo = kSAI_Stereo;
     format.watermark = FSL_FEATURE_SAI_FIFO_COUNT / 2U;
 
-    // Configure Sgtl5000 I2C
-    uint32_t i2cSourceClock = CLOCK_GetFreq(kCLOCK_BusClk);
-    i2c_master_config_t i2cConfig = {0};
-    I2C_MasterGetDefaultConfig(&i2cConfig);
-    I2C_MasterInit(I2C0, &i2cConfig, i2cSourceClock);
-    I2C_MasterTransferCreateHandle(I2C0, &g_i2cHandle, NULL, NULL);
+    g_audioOut.init(&format);
 
-    g_audioOut.init(&format, I2C0, &g_i2cHandle);
-//     g_audioOut.dump_sgtl5000();
+    // Configure audio codec
+    DA7212_InitCodec(BOARD_CODEC_I2C_BASE);
 
+    while (DA7212_GetStatus() & DA7212_STATUS_BUSY_MASK)
+    {
+        DA7212_Driver();
+    }
+
+    DA7212_ChangeFrequency(DA7212_SYS_FS_32K);
+
+    while (DA7212_GetStatus() & DA7212_STATUS_BUSY_MASK)
+    {
+        DA7212_Driver();
+    }
+
+    DA7212_ChangeInput(DA7212_Input_MIC1_Dig);
+
+    while (DA7212_GetStatus() & DA7212_STATUS_BUSY_MASK)
+    {
+        DA7212_Driver();
+    }
+
+    init_audio_synth();
+
+//     delete g_audioInitThread;
+}
+
+void init_audio_out()
+{
+    g_audioInitThread = new Ar::Thread("auinit", audio_init_thread, 0, NULL, 1500, 200, kArStartThread);
+}
+
+void init_audio_synth()
+{
     AudioOutput::Buffer buf;
     buf.dataSize = BUFFER_SIZE * CHANNEL_NUM * sizeof(int16_t);
     buf.data = (uint8_t *)&g_outBuf[0][0];
@@ -360,12 +413,15 @@ void init_fs()
 void init_thread(void * arg)
 {
     init_board();
+
+    init_i2c0();
+    init_i2c1();
     init_audio_out();
 //     init_fs();
     g_display.init();
 
     g_myTimer.start();
-//     g_audioOut.start();
+    g_audioOut.start();
 //     g_accelThread.resume();
 //     g_potsThread.resume();
     g_display.start();

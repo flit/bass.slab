@@ -32,10 +32,12 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <stdint.h>
-#include "ProjectTypes.h"
-#include "fsl_i2c_master_driver.h"
+// #include "ProjectTypes.h"
+// #include "fsl_i2c_master_driver.h"
 #include "Dialog7212.h"
-#include "SW_Timer.h"
+// #include "SW_Timer.h"
+#include "argon/argon.h"
+#include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   Defines & Macros Section
@@ -547,16 +549,22 @@ static const uint8_t DA7212_gchangeFreqValues[DA7212_SYS_FS_MAX][DA7212_CHANGE_F
 		}
 
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//                                   Global Variables Section
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef struct {
+    uint8_t actualState;
+    uint8_t prevState;
+    uint8_t nextState;
+    uint8_t errorState;
+} state_machine_t;
+
+#define OK (0)
+#define ERROR (1)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   Static Variables Section
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-static volatile uint8_t DA7212_TimeOutFlag;
+// static volatile uint8_t DA7212_TimeOutFlag;
 
 static volatile uint8_t DA7212_gDriverStatus;
 
@@ -582,15 +590,21 @@ static uint8_t DA7212_gRegistersToChange[10];
 
 static uint8_t DA7212_gValuesToChange[10];
 
-static i2c_master_state_t master;
-
 static uint32_t bytesRemaining;
 
-static const i2c_device_t DA7212_I2C =
-{
-		.address	=	DA7212_ADDRESS,
-		.baudRate_kbps = baudRate
-};
+static uint32_t s_startTime = 0;
+
+static I2C_Type * s_i2cBase = NULL;
+static i2c_master_handle_t s_i2cHandle;
+static i2c_master_transfer_t s_i2cTransfer;
+static volatile bool s_i2cTransferCompleted = false;
+static status_t s_i2cTransferStatus;
+
+// static const i2c_device_t DA7212_I2C =
+// {
+// 		.address	=	DA7212_ADDRESS,
+// 		.baudRate_kbps = baudRate
+// };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                      Functions Section
@@ -607,12 +621,25 @@ void DA7212_WriteRegister(uint8_t u8Register, uint8_t u8RegisterData)
 	DA7212_SET_STATUS(DA7212_STATUS_BUSY_MASK);
 
 	/* Set the command buffer to send the data thru physical layer */
-	DA7212_gDataOutBuffer[0] = u8Register;
-	DA7212_gDataOutBuffer[1] = u8RegisterData;
+// 	DA7212_gDataOutBuffer[0] = u8Register;
+	DA7212_gDataOutBuffer[0] = u8RegisterData;
 
-	I2C_DRV_MasterSendData(I2C1_instance,&DA7212_I2C,NULL,0,&DA7212_gDataOutBuffer[0],DA7212_CONTROL_BUFFER_SIZE);
+// 	I2C_MasterSendData(I2C1_instance,&DA7212_I2C,NULL,0,&DA7212_gDataOutBuffer[0],DA7212_CONTROL_BUFFER_SIZE);
 
-	DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;;
+	s_i2cTransfer.flags = 0;
+	s_i2cTransfer.slaveAddress = DA7212_ADDRESS;
+	s_i2cTransfer.direction = kI2C_Write;
+	s_i2cTransfer.subaddress = u8Register;
+	s_i2cTransfer.subaddressSize = 1;
+	s_i2cTransfer.data = DA7212_gDataOutBuffer;
+	s_i2cTransfer.dataSize = 1;
+
+    s_i2cTransferCompleted = false;
+
+    printf("DA7212: write reg 0x%02x = 0x%02x\r\n", u8Register, u8RegisterData);
+	I2C_MasterTransferNonBlocking(s_i2cBase, &s_i2cHandle, &s_i2cTransfer);
+
+	DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
 }
 
 void DA7212_ReadRegister(uint8_t u8Register, uint8_t *pu8RegisterData)
@@ -627,7 +654,19 @@ void DA7212_ReadRegister(uint8_t u8Register, uint8_t *pu8RegisterData)
 	DA7212_gReadData = pu8RegisterData;
 
 	/* Use physical layer */
-	I2C_DRV_MasterReceiveData(I2C1_instance,&DA7212_I2C,NULL,0,(uint8_t*)DA7212_gReadData,1);
+// 	I2C_DRV_MasterReceiveData(I2C1_instance,&DA7212_I2C,NULL,0,(uint8_t*)DA7212_gReadData,1);
+
+	s_i2cTransfer.flags = 0;
+	s_i2cTransfer.slaveAddress = DA7212_ADDRESS;
+	s_i2cTransfer.direction = kI2C_Read;
+	s_i2cTransfer.subaddress = u8Register;
+	s_i2cTransfer.subaddressSize = 1;
+	s_i2cTransfer.data = DA7212_gReadData;
+	s_i2cTransfer.dataSize = 1;
+
+	s_i2cTransferCompleted = false;
+
+	I2C_MasterTransferNonBlocking(s_i2cBase, &s_i2cHandle, &s_i2cTransfer);
 
 	DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
 }
@@ -637,10 +676,19 @@ void DA7212_Driver(void)
 	DA7212_StateMachine[DA7212_gStates.actualState]();
 }
 
-void DA7212_InitCodec(void)
+void DA7212_I2CCompletionCallback(I2C_Type *base, i2c_master_handle_t *handle, status_t status, void *userData)
 {
-	/* Initialize physical layer */
-    I2C_DRV_MasterInit(I2C1_instance,&master);
+    printf("DA7212: reg write complete; status = %d\r\n", status);
+    s_i2cTransferCompleted = true;
+    s_i2cTransferStatus = status;
+}
+
+void DA7212_InitCodec(I2C_Type * base)
+{
+    s_i2cBase = base;
+
+    I2C_MasterTransferCreateHandle(s_i2cBase, &s_i2cHandle, DA7212_I2CCompletionCallback, NULL);
+
 	/* Set the driver as busy */
 	DA7212_SET_STATUS(DA7212_STATUS_BUSY_MASK);	/* Set next state logic and write the register */
 
@@ -812,38 +860,51 @@ uint8_t DA7212_ChangeFrequency(eDa7212SysFs dwNewFreqValue)
 
 static void DA7212_WaitCommState(void)
 {
-	/*Check for the physical layer driver to be free*/
-	if(!(I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)==kStatus_I2C_Busy))
-	{
-		if((I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)!=kStatus_I2C_ReceivedNak)&&(I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)!=kStatus_I2C_Timeout))
-		{
+    if (s_i2cTransferCompleted)
+    {
+        if (s_i2cTransferStatus == kStatus_Success)
+        {
 			DA7212_gStates.actualState = DA7212_gStates.nextState;
-		}
-		else
-		{
+        }
+        else
+        {
 			/* a NACK or time out was received*/
 			DA7212_SET_STATUS(DA7212_STATUS_I2C_ERROR_MASK);
 			DA7212_gStates.actualState = DA7212_gStates.nextState;
-		}
-	}
+        }
+    }
+
+	/*Check for the physical layer driver to be free*/
+// 	if(!(I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)==kStatus_I2C_Busy))
+// 	{
+// 		if((I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)!=kStatus_I2C_ReceivedNak)&&(I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)!=kStatus_I2C_Timeout))
+// 		{
+// 			DA7212_gStates.actualState = DA7212_gStates.nextState;
+// 		}
+// 		else
+// 		{
+// 			/* a NACK or time out was received*/
+// 			DA7212_SET_STATUS(DA7212_STATUS_I2C_ERROR_MASK);
+// 			DA7212_gStates.actualState = DA7212_gStates.nextState;
+// 		}
+// 	}
 }
 
 
 static void DA7212_WriteBlockState(void)
 {
-
 	/*retries if the I2C driver reported an error*/
 	if(DA7212_CHECK_STATUS(DA7212_STATUS_I2C_ERROR_MASK))
 	{
 		DA7212_gRegisterOffset--;
 		DA7212_CLEAR_STATUS(DA7212_STATUS_I2C_ERROR_MASK);
 	}
+
 	/* Check if there is any other write registers */
 	if(DA7212_gRegisterOffset < DA7212_gRegistersToWrite)
 	{
-
 		/* Take the register and the data to be written */
-		DA7212_WriteRegister(DA7212_gWriteBlockRegister[DA7212_gRegisterOffset],DA7212_gWriteBlockRegisterValue[DA7212_gRegisterOffset]);
+        DA7212_WriteRegister(DA7212_gWriteBlockRegister[DA7212_gRegisterOffset], DA7212_gWriteBlockRegisterValue[DA7212_gRegisterOffset]);
 
 		DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
 		DA7212_gStates.nextState = DA7212_WRITE_BLOCK_STATE;
@@ -851,19 +912,22 @@ static void DA7212_WriteBlockState(void)
 	}
 	else
 	{
-        /* if this isn't the startup block write */
-		if(DA7212_CHECK_STATUS(DA7212_STATUS_STARTUP_DONE_MASK))
+         /* if this isn't the startup block write */
+		 if(DA7212_CHECK_STATUS(DA7212_STATUS_STARTUP_DONE_MASK))
          {
 			DA7212_SET_STATUS(DA7212_STATUS_CONFIGURED_MASK);
 			DA7212_gStates.actualState = DA7212_CONTROL_STATE_IDLE;
-         }else
+         }
+         else
          {
         	/* a >40ms delay is required after initialization to enable the LDO 						*/
 			/* From Dialog Apps Engineer: This allows the bandgap internal voltage reference to settle	*/
 
+            s_startTime = ar_get_millisecond_count();
+
         	/* reserve a timer and start it */
- 			gbDA7212_gLDOTimer = SWTimer_AllocateChannel(DA7212_50MS_TIMEOUT,DA7212_SWTimerCallback);
- 			SWTimer_EnableTimer(gbDA7212_gLDOTimer);
+//  			gbDA7212_gLDOTimer = SWTimer_AllocateChannel(DA7212_50MS_TIMEOUT,DA7212_SWTimerCallback);
+//  			SWTimer_EnableTimer(gbDA7212_gLDOTimer);
 
 			/* set the startup done mask */
 			DA7212_SET_STATUS(DA7212_STATUS_STARTUP_DONE_MASK);
@@ -872,24 +936,26 @@ static void DA7212_WriteBlockState(void)
 			DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_TIMEOUT;
          }
 
-		/* When finished, set IDLE state to Actual and Next states */
-		DA7212_gRegisterOffset = 0;
+		 /* When finished, set IDLE state to Actual and Next states */
+		 DA7212_gRegisterOffset = 0;
 	}
 
 }
 
 static void DA7212_TimeoutState(void)
 {
+    uint32_t now = ar_get_millisecond_count();
 
 	/* poll the SW timer */
-	if(DA7212_TimeOutFlag)
+// 	if(DA7212_TimeOutFlag)
+    if (now - s_startTime >= 40)
 	{
 		/* once the SW timer has expired, enable the LDO*/
 		DA7212_WriteRegister(DIALOG7212_LDO_CTRL,DIALOG7212_LDO_CTRL_EN_MASK);
 
 		/* the timer won't be needed, release it */
-		DA7212_TimeOutFlag = 0;
-		SWTimer_DisableTimer(gbDA7212_gLDOTimer);
+// 		DA7212_TimeOutFlag = 0;
+// 		SWTimer_DisableTimer(gbDA7212_gLDOTimer);
 		/* go to idle */
 		DA7212_gStates.nextState = DA7212_CONTROL_STATE_IDLE;
 	}
@@ -897,7 +963,7 @@ static void DA7212_TimeoutState(void)
 
 void DA7212_SWTimerCallback (void)
 {
-	DA7212_TimeOutFlag = 1;
+// 	DA7212_TimeOutFlag = 1;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // EOF

@@ -142,8 +142,11 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.1370864789.178264941" name="Dialog7212.c" rcbsApplicability="disable" resourcePath="ksdk/Dialog7212.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.107191376.175440844">
+						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.107191376.175440844" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.107191376"/>
+					</fileInfo>
 					<sourceEntries>
-						<entry excluding="app/reverb_filter.cpp|ksdk/Dialog7212.c|src/reverb_filter.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="app/reverb_filter.cpp|src/reverb_filter.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

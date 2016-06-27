@@ -31,8 +31,6 @@
 
 #include "argon/argon.h"
 #include "fsl_sai_edma.h"
-#include "fsl_i2c.h"
-// #include "fsl_sgtl5000.h"
 
 //------------------------------------------------------------------------------
 // Definitions
@@ -59,13 +57,11 @@ public:
     AudioOutput() {}
     ~AudioOutput() {}
 
-    void init(const sai_transfer_format_t * format, I2C_Type * i2cBase, i2c_master_handle_t * i2c);
+    void init(const sai_transfer_format_t * format);
     void add_buffer(Buffer * newBuffer);
     void set_source(Source * source) { m_source = source; }
 
     void start();
-
-//     void dump_sgtl5000() { SGTL_Dump(&m_codecHandle); }
 
 protected:
 
@@ -76,9 +72,8 @@ protected:
     sai_transfer_format_t m_format;
     sai_edma_handle_t m_txHandle;
     edma_handle_t m_dmaHandle;
-//     sgtl_handle_t m_codecHandle;
     Ar::Semaphore m_transferDone;
-    Ar::ThreadWithStack<512> m_audioThread;
+    Ar::ThreadWithStack<4096> m_audioThread;
     Buffer m_buffers[kMaxBufferCount];
     uint32_t m_bufferCount;
     Source * m_source;

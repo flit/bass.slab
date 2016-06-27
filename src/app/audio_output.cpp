@@ -35,7 +35,7 @@
 // Code
 //------------------------------------------------------------------------------
 
-void AudioOutput::init(const sai_transfer_format_t * format, I2C_Type * i2cBase, i2c_master_handle_t * i2c)
+void AudioOutput::init(const sai_transfer_format_t * format)
 {
     m_format = *format;
     m_bufferCount = 0;
@@ -55,24 +55,13 @@ void AudioOutput::init(const sai_transfer_format_t * format, I2C_Type * i2cBase,
     // Init SAI module
     sai_config_t saiConfig;
     SAI_TxGetDefaultConfig(&saiConfig);
-    saiConfig.protocol = kSAI_BusLeftJustified;
-    saiConfig.masterSlave = kSAI_Master;
+    saiConfig.protocol = kSAI_BusI2S; // kSAI_BusLeftJustified;
+    saiConfig.masterSlave = kSAI_Slave; // kSAI_Master;
     SAI_TxInit(I2S0, &saiConfig);
     SAI_TransferTxCreateHandleEDMA(I2S0, &m_txHandle, sai_callback, &m_transferDone, &m_dmaHandle);
 
     uint32_t mclkSourceClockHz = CLOCK_GetFreq(kCLOCK_CoreSysClk);
     SAI_TransferTxSetFormatEDMA(I2S0, &m_txHandle, &m_format, mclkSourceClockHz, m_format.masterClockHz);
-
-    // Configure the sgtl5000.
-//     sgtl_config_t sgtlConfig = {
-//         .route = kSGTL_RoutePlayback,
-//         .bus = kSGTL_BusLeftJustified,
-//         .master_slave = false,
-//     };
-//     m_codecHandle.base = i2cBase;
-//     m_codecHandle.i2cHandle = i2c;
-//     SGTL_Init(&m_codecHandle, &sgtlConfig);
-//     SGTL_ConfigDataFormat(&m_codecHandle, m_format.masterClockHz, m_format.sampleRate_Hz, m_format.bitWidth);
 
     // Create audio thread.
     m_audioThread.init("audio", this, &AudioOutput::audio_thread, 180, kArSuspendThread);
