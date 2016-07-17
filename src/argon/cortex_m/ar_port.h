@@ -132,7 +132,7 @@ inline void ar_port_service_call()
 #endif // DEBUG
 
 //! @brief Returns true if in IRQ state.
-inline bool ar_port_get_irq_state(void)
+static inline bool ar_port_get_irq_state(void)
 {
     return __get_IPSR() != 0;
 }
@@ -140,7 +140,7 @@ inline bool ar_port_get_irq_state(void)
 #if __cplusplus
 extern "C" inline uint32_t ar_get_milliseconds_per_tick();
 #else
-static inline uint32_t ar_get_milliseconds_per_tick();
+static inline uint32_t ar_get_milliseconds_per_tick(void);
 #endif
 
 //! @brief Returns the number of milliseconds per tick.
