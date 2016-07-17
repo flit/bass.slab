@@ -42,15 +42,15 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   Defines & Macros Section
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#define DA7212_CHECK_STATUS(x)	(DA7212_gDriverStatus&(x))
+#define DA7212_CHECK_STATUS(x)	(s_context.DriverStatus&(x))
 
-#define DA7212_CONTROL_BUSY		(DA7212_gDriverStatus&(DA7212_STATUS_BUSY_MASK))
+#define DA7212_CONTROL_BUSY		(s_context.DriverStatus&(DA7212_STATUS_BUSY_MASK))
 
-#define DA7212_CONFIGURED		(DA7212_gDriverStatus&(DA7212_STATUS_CONFIGURED_MASK))
+#define DA7212_CONFIGURED		(s_context.DriverStatus&(DA7212_STATUS_CONFIGURED_MASK))
 
-#define DA7212_SET_STATUS(x)	(DA7212_gDriverStatus|=(x))
+#define DA7212_SET_STATUS(x)	(s_context.DriverStatus|=(x))
 
-#define DA7212_CLEAR_STATUS(x)	(DA7212_gDriverStatus&=~(x))
+#define DA7212_CLEAR_STATUS(x)	(s_context.DriverStatus&=~(x))
 
 #define DA7212_ADDRESS	(0x1A)
 
@@ -142,6 +142,11 @@ typedef enum
 	DA7212_CONTROL_MAX_STATES
 }eDA7212ControlStates;
 
+typedef struct _da7212_register_value {
+    uint8_t addr;
+    uint8_t value;
+} da7212_register_value_t;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                  Function Prototypes Section
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,270 +167,144 @@ static void (* const DA7212_StateMachine[]) (void) =
 		DA7212_WriteBlockState,
 		DA7212_TimeoutState,
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//                                   Global Constants Section
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                   Static Constants Section
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const uint8_t DA7212_gInputRegisterSequence[DA7212_Input_MAX][17] =
+static const da7212_register_value_t kInputRegisterSequence[DA7212_Input_MAX][17] =
 {
+        // DA7212_Input_AUX
 		{
-				DIALOG7212_MIXIN_L_SELECT,
-				DIALOG7212_MIXIN_R_SELECT,
-				DIALOG7212_CP_CTRL,
-				DIALOG7212_AUX_L_CTRL,
-				DIALOG7212_AUX_R_CTRL,
-				DIALOG7212_MIC_1_CTRL,
-				DIALOG7212_MIC_2_CTRL,
-				DIALOG7212_MIXIN_L_CTRL,
-				DIALOG7212_MIXIN_R_CTRL,
-				DIALOG7212_ADC_L_CTRL,
-				DIALOG7212_GAIN_RAMP_CTRL,
-				DIALOG7212_PC_COUNT,
-				DIALOG7212_CP_DELAY
+				{ DIALOG7212_MIXIN_L_SELECT,            0x01 },
+				{ DIALOG7212_MIXIN_R_SELECT,            0x01 },
+				{ DIALOG7212_CP_CTRL,                   0xFD },
+				{ DIALOG7212_AUX_L_CTRL,                0xB4 },
+				{ DIALOG7212_AUX_R_CTRL,                0xB0 },
+				{ DIALOG7212_MIC_1_CTRL,                0x04 },
+				{ DIALOG7212_MIC_2_CTRL,                0x04 },
+				{ DIALOG7212_MIXIN_L_CTRL,              0x88 },
+				{ DIALOG7212_MIXIN_R_CTRL,              0x88 },
+				{ DIALOG7212_ADC_L_CTRL,                0xA0 },
+				{ DIALOG7212_GAIN_RAMP_CTRL,            0x02 },
+				{ DIALOG7212_PC_COUNT,                  0x02 },
+				{ DIALOG7212_CP_DELAY,                  0x95 },
 		},
+		// DA7212_Input_MIC1_Dig
 		{
-				DIALOG7212_MICBIAS_CTRL,
-				DIALOG7212_CP_CTRL,
-				DIALOG7212_MIXIN_L_SELECT,
-				DIALOG7212_MIXIN_R_SELECT,
-				DIALOG7212_SYSTEM_MODES_INPUT,
-				DIALOG7212_SYSTEM_MODES_OUTPUT,
-				DIALOG7212_MIC_2_GAIN,
-				DIALOG7212_MIC_2_CTRL,
-				DIALOG7212_MIC_1_GAIN,
-				DIALOG7212_MIC_1_CTRL
+				{ DIALOG7212_MICBIAS_CTRL,              0xA9 },
+				{ DIALOG7212_CP_CTRL,                   0xF1 },
+				{ DIALOG7212_MIXIN_L_SELECT,            0x80 },
+				{ DIALOG7212_MIXIN_R_SELECT,            0x80 },
+				{ DIALOG7212_SYSTEM_MODES_INPUT,        0xFE },
+				{ DIALOG7212_SYSTEM_MODES_OUTPUT,       0xF7 },
+				{ DIALOG7212_MIC_2_GAIN,                0x04 },
+				{ DIALOG7212_MIC_2_CTRL,                0x84 },
+				{ DIALOG7212_MIC_1_GAIN,                0x01 },
+				{ DIALOG7212_MIC_1_CTRL,                0x80 },
 		},
+		// DA7212_Input_MIC1_An
 		{
-				DIALOG7212_MIXIN_L_SELECT,
-				DIALOG7212_MIXIN_R_SELECT,
-				DIALOG7212_MIC_1_GAIN,
-				DIALOG7212_CP_CTRL,
-				DIALOG7212_MIXOUT_L_SELECT,
-				DIALOG7212_MIXOUT_R_SELECT,
-				DIALOG7212_AUX_R_CTRL,
-				DIALOG7212_MICBIAS_CTRL,
-				DIALOG7212_MIC_1_CTRL,
-				DIALOG7212_MIC_2_CTRL,
-				DIALOG7212_MIXIN_L_CTRL,
-				DIALOG7212_MIXIN_R_CTRL,
-				DIALOG7212_ADC_L_CTRL,
-				DIALOG7212_GAIN_RAMP_CTRL,
-				DIALOG7212_PC_COUNT,
-				DIALOG7212_CP_DELAY
+				{ DIALOG7212_MIXIN_L_SELECT,            0x02 },
+				{ DIALOG7212_MIXIN_R_SELECT,            0x04 },
+				{ DIALOG7212_MIC_1_GAIN,                0x03 },
+				{ DIALOG7212_CP_CTRL,                   0xFD },
+				{ DIALOG7212_MIXOUT_L_SELECT,           0x08 },
+				{ DIALOG7212_MIXOUT_R_SELECT,           0x08 },
+				{ DIALOG7212_AUX_R_CTRL,                0x40 },
+				{ DIALOG7212_MICBIAS_CTRL,              0x19 },
+				{ DIALOG7212_MIC_1_CTRL,                0x84 },
+				{ DIALOG7212_MIC_2_CTRL,                0x04 },
+				{ DIALOG7212_MIXIN_L_CTRL,              0x88 },
+				{ DIALOG7212_MIXIN_R_CTRL,              0x88 },
+				{ DIALOG7212_ADC_L_CTRL,                0xA0 },
+				{ DIALOG7212_GAIN_RAMP_CTRL,            0x02 },
+				{ DIALOG7212_PC_COUNT,                  0x02 },
+				{ DIALOG7212_CP_DELAY,                  0x95 },
 		},
+		// DA7212_Input_MIC2
 		{
-				DIALOG7212_MIXIN_L_SELECT,
-				DIALOG7212_MIXIN_R_SELECT,
-				DIALOG7212_MIC_2_GAIN,
-				DIALOG7212_CP_CTRL,
-				DIALOG7212_AUX_R_CTRL,
-				DIALOG7212_MICBIAS_CTRL,
-				DIALOG7212_MIC_1_CTRL,
-				DIALOG7212_MIC_2_CTRL,
-				DIALOG7212_MIXIN_L_CTRL,
-				DIALOG7212_MIXIN_R_CTRL,
-				DIALOG7212_ADC_L_CTRL,
-				DIALOG7212_GAIN_RAMP_CTRL,
-				DIALOG7212_PC_COUNT,
-				DIALOG7212_CP_DELAY
+				{ DIALOG7212_MIXIN_L_SELECT,            0x04 },
+				{ DIALOG7212_MIXIN_R_SELECT,            0x02 },
+				{ DIALOG7212_MIC_2_GAIN,                0x04 },
+				{ DIALOG7212_CP_CTRL,                   0xFD },
+				{ DIALOG7212_AUX_R_CTRL,                0x40 },
+				{ DIALOG7212_MICBIAS_CTRL,              0x91 },
+				{ DIALOG7212_MIC_1_CTRL,                0x08 },
+				{ DIALOG7212_MIC_2_CTRL,                0x84 },
+				{ DIALOG7212_MIXIN_L_CTRL,              0x88 },
+				{ DIALOG7212_MIXIN_R_CTRL,              0x88 },
+				{ DIALOG7212_ADC_L_CTRL,                0xA0 },
+				{ DIALOG7212_GAIN_RAMP_CTRL,            0x02 },
+				{ DIALOG7212_PC_COUNT,                  0x02 },
+				{ DIALOG7212_CP_DELAY,                  0x95 },
 		}
 };
 
-static const uint8_t DA7212_gInputRegisterValuesSequence[DA7212_Input_MAX][17] =
+static const da7212_register_value_t kOutputRegisterSequence[DA7212_Output_MAX][4] =
 {
+        // DA7212_Output_HP
 		{
-				0x01,
-				0x01,
-				0xFD,
-				0xB4,
-				0xB0,
-				0x04,
-				0x04,
-				0x88,
-				0x88,
-				0xA0,
-				0x02,
-				0x02,
-				0x95                                                                         //DIALOG7212_MIXOUT_R_SELECT,
+				{ DIALOG7212_CP_CTRL,                   0xFD },
+				{ DIALOG7212_LINE_CTRL,                 0X40 },
+				{ DIALOG7212_HP_L_CTRL,                 (DIALOG7212_HP_L_CTRL_AMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_OE_MASK) },
+				{ DIALOG7212_HP_R_CTRL,                 (DIALOG7212_HP_R_CTRL_AMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_OE_MASK) },
 		},
+		// DA7212_Output_SP
 		{
-				0xA9,                                                                           //DIALOG7212_MICBIAS_CTRL,
-				0xF1,                                                                           //DIALOG7212_CP_CTRL,
-				0x80,                                                                           //DIALOG7212_MIXIN_L_SELECT,
-				0x80,                                                                           //DIALOG7212_MIXIN_R_SELECT,                                                                        //DIALOG7212_MIXOUT_R_SELECT,
-				0xFE,                                                                           //DIALOG7212_SYSTEM_MODES_INPUT,
-				0xF7,                                                                           //DIALOG7212_SYSTEM_MODES_OUTPUT,
-				0x04,                                                                           //DIALOG7212_MIC_2_GAIN,
-				0x84,                                                                           //DIALOG7212_MIC_2_CTRL,
-				0x01,                                                                           //DIALOG7212_MIC_1_GAIN,
-				0x80
-		},
-		{
-				0x02,
-				0x04,
-				0x03,
-				0xFD,
-				0x08,
-				0x08,
-				0x40,
-				0x19,
-				0x84,
-				0x04,
-				0x88,
-				0x88,
-				0xA0,
-				0x02,
-				0x02,
-				0x95
-		},
-		{
-				0x04,
-				0x02,
-				0x04,
-				0xFD,
-				0x40,
-				0x91,
-				0x08,
-				0x84,
-				0x88,
-				0x88,
-				0xA0,
-				0xA0,
-				0xA0,
-				0x02,
-				0x02,
-				0x95
+				{ DIALOG7212_CP_CTRL,                   0x3D },
+				{ DIALOG7212_HP_L_CTRL,                 0x40 },
+				{ DIALOG7212_HP_R_CTRL,                 0x40 },
+				{ DIALOG7212_LINE_CTRL,                 0xA8 },
 		}
 };
 
-static const uint8_t DA7212_gOutputRegisterSequence[DA7212_Output_MAX][4] =
+static const da7212_register_value_t kInitRegisterSequence[DA7212_INIT_SIZE]=
 {
-		{
-				DIALOG7212_CP_CTRL,
-				DIALOG7212_LINE_CTRL,
-				DIALOG7212_HP_L_CTRL,
-				DIALOG7212_HP_R_CTRL
-		},
-		{
-				DIALOG7212_CP_CTRL,
-				DIALOG7212_HP_L_CTRL,
-				DIALOG7212_HP_R_CTRL,
-				DIALOG7212_LINE_CTRL
-		}
+		{ DIALOG7212_STATUS1,                           CLEAR_REGISTER, },
+		{ DIALOG7212_PLL_STATUS,                        (DIALOG7212_PLL_STATUS_MCLK_STATUS_MASK | DIALOG7212_PLL_STATUS_LOCK_MASK), },
+		{ DIALOG7212_DAC_L_GAIN_STATUS,                 CLEAR_REGISTER, },
+		{ DIALOG7212_DAC_R_GAIN_STATUS,                 CLEAR_REGISTER, },
+		{ DIALOG7212_HP_L_GAIN_STATUS,                  CLEAR_REGISTER, },
+		{ DIALOG7212_HP_R_GAIN_STATUS,                  CLEAR_REGISTER, },
+		{ DIALOG7212_LINE_GAIN_STATUS,                  CLEAR_REGISTER, },
+		{ DIALOG7212_SR,                                DIALOG7212_SR_48KHZ, },
+		{ DIALOG7212_REFERENCES,                        DIALOG7212_REFERENCES_BIAS_EN_MASK, },
+		{ DIALOG7212_PLL_FRAC_TOP,                      DIALOG7212_FB_DIV_FRAC_TOP_48K, },
+		{ DIALOG7212_PLL_FRAC_BOT,                      DIALOG7212_FB_DIV_FRAC_BOT_48K, },
+		{ DIALOG7212_PLL_INTEGER,                       DIALOG7212_FB_DIV_INTEGER_48K, },
+		{ DIALOG7212_PLL_CTRL,                          (DIALOG7212_PLL_EN_MASK | DIALOG7212_PLL_INDIV), },
+		{ DIALOG7212_DAI_CLK_MODE,                      (DIALOG7212_DAI_CLK_EN_MASK | DIALOG7212_DAI_BCLKS_PER_WCLK_BCLK32), },
+		{ DIALOG7212_DAI_CTRL,                          (DIALOG7212_DAI_EN_MASK | DIALOG7212_DAI_OE__MASK | DIALOG7212_DAI_WORD_LENGTH_16B), },
+		{ DIALOG7212_DIG_ROUTING_DAC,                   (DIALOG7212_DIG_ROUTING_DAC_R_RSC_DAC_R | DIALOG7212_DIG_ROUTING_DAC_L_RSC_DAC_L), },
+		{ DIALOG7212_CP_CTRL,                           (DIALOG7212_CP_CTRL_EN_MASK | DIALOG7212_CP_CTRL_SMALL_SWIT_CH_FREQ_EN_MASK | DIALOG7212_CP_CTRL_MCHANGE_OUTPUT | DIALOG7212_CP_CTRL_MOD_CPVDD_1 | DIALOG7212_CP_CTRL_ANALOG_VLL_LV_BOOSTS_CP), },
+		{ DIALOG7212_MIXOUT_L_SELECT,                   (DIALOG7212_MIXOUT_L_SELECT_DAC_L_MASK), },
+		{ DIALOG7212_MIXOUT_R_SELECT,                   (DIALOG7212_MIXOUT_R_SELECT_DAC_R_MASK), },
+		{ DIALOG7212_DAC_L_CTRL,                        (DIALOG7212_DAC_L_CTRL_ADC_EN_MASK | DIALOG7212_DAC_L_CTRL_ADC_RAMP_EN_MASK), },
+		{ DIALOG7212_DAC_R_CTRL,                        (DIALOG7212_DAC_R_CTRL_ADC_EN_MASK | DIALOG7212_DAC_R_CTRL_ADC_RAMP_EN_MASK), },
+		{ DIALOG7212_HP_L_CTRL,                         (DIALOG7212_HP_L_CTRL_AMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_OE_MASK), },
+		{ DIALOG7212_HP_R_CTRL,                         (DIALOG7212_HP_R_CTRL_AMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_OE_MASK), },
+		{ DIALOG7212_MIXOUT_L_CTRL,                     (DIALOG7212_MIXOUT_L_CTRL_AMP_EN_MASK | DIALOG7212_MIXOUT_L_CTRL_AMP_SOFT_MIX_EN_MASK | DIALOG7212_MIXOUT_L_CTRL_AMP_MIX_EN_MASK), },
+		{ DIALOG7212_MIXOUT_R_CTRL,                     (DIALOG7212_MIXOUT_R_CTRL_AMP_EN_MASK | DIALOG7212_MIXOUT_R_CTRL_AMP_SOFT_MIX_EN_MASK | DIALOG7212_MIXOUT_R_CTRL_AMP_MIX_EN_MASK), },
+		{ DIALOG7212_CP_VOL_THRESHOLD1,                 (DIALOG7212_CP_VOL_THRESHOLD1_VDD2(0x32)), },
+        { DIALOG7212_SYSTEM_STATUS,                     CLEAR_REGISTER, },
+        { DIALOG7212_DAC_L_GAIN,                        DA7212_DAC_GAIN_0DB, },
+        { DIALOG7212_DAC_R_GAIN,                        DA7212_DAC_GAIN_0DB, },
+		{ DIALOG7212_MIXIN_L_SELECT,                    DIALOG7212_MIXIN_L_SELECT_AUX_L_SEL_MASK, },
+		{ DIALOG7212_MIXIN_R_SELECT,                    DIALOG7212_MIXIN_R_SELECT_AUX_R_SEL_MASK, },
+		{ DIALOG7212_MIXIN_L_GAIN,                      DIALOG7212_MIXIN_L_AMP_GAIN(0x03), },
+		{ DIALOG7212_MIXIN_R_GAIN,                      DIALOG7212_MIXIN_R_AMP_GAIN(0x03), },
+		{ DIALOG7212_ADC_L_GAIN,                        DIALOG7212_ADC_L_DIGITAL_GAIN(0x6F), },
+		{ DIALOG7212_ADC_R_GAIN,                        DIALOG7212_ADC_R_DIGITAL_GAIN(0x6F), },
+		{ DIALOG7212_AUX_L_CTRL,                        DIALOG7212_AUX_L_CTRL_AMP_EN_MASK|DIALOG7212_AUX_L_CTRL_AMP_RAMP_EN_MASK|DIALOG7212_AUX_L_CTRL_AMP_ZC_EN_MASK, },
+		{ DIALOG7212_AUX_R_CTRL,                        DIALOG7212_AUX_R_CTRL_AMP_EN_MASK|DIALOG7212_AUX_R_CTRL_AMP_RAMP_EN_MASK|DIALOG7212_AUX_R_CTRL_AMP_ZC_EN_MASK, },
+		{ DIALOG7212_MIXIN_L_CTRL,                      DIALOG7212_MIXIN_L_CTRL_AMP_EN_MASK|DIALOG7212_MIXIN_L_CTRL_AMP_MIX_EN_MASK, },
+		{ DIALOG7212_MIXIN_R_CTRL,                      DIALOG7212_MIXIN_R_CTRL_AMP_EN_MASK|DIALOG7212_MIXIN_R_CTRL_AMP_MIX_EN_MASK, },
+		{ DIALOG7212_ADC_L_CTRL,                        DIALOG7212_ADC_L_CTRL_ADC_EN_MASK|DIALOG7212_ADC_L_CTRL_ADC_RAMP_EN_MASK, },
+		{ DIALOG7212_ADC_R_CTRL,                        DIALOG7212_ADC_R_CTRL_ADC_EN_MASK|DIALOG7212_ADC_R_CTRL_ADC_RAMP_EN_MASK, },
 };
 
-static const uint8_t DA7212_gOutputRegisterValuesSequence[DA7212_Output_MAX][4] =
-{
-		{
-				0xFD,
-				0X40,
-				(DIALOG7212_HP_L_CTRL_AMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_OE_MASK),
-				(DIALOG7212_HP_R_CTRL_AMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_OE_MASK),
-		},
-		{
-				0x3D,
-				0x40,
-				0x40,
-				0xA8
-		}
-};
-
-static const uint8_t DA7212_gInitRegisterSequence[DA7212_INIT_SIZE]=
-{
-		DIALOG7212_STATUS1,
-		DIALOG7212_PLL_STATUS,
-		DIALOG7212_DAC_L_GAIN_STATUS,
-		DIALOG7212_DAC_R_GAIN_STATUS,
-		DIALOG7212_HP_L_GAIN_STATUS,
-		DIALOG7212_HP_R_GAIN_STATUS,
-		DIALOG7212_LINE_GAIN_STATUS,
-		DIALOG7212_SR,
-		DIALOG7212_REFERENCES,
-		DIALOG7212_PLL_FRAC_TOP,
-		DIALOG7212_PLL_FRAC_BOT,
-		DIALOG7212_PLL_INTEGER,
-		DIALOG7212_PLL_CTRL,
-		DIALOG7212_DAI_CLK_MODE,
-		DIALOG7212_DAI_CTRL,
-		DIALOG7212_DIG_ROUTING_DAC,
-		DIALOG7212_CP_CTRL,
-		DIALOG7212_MIXOUT_L_SELECT,
-		DIALOG7212_MIXOUT_R_SELECT,
-		DIALOG7212_DAC_L_CTRL,
-		DIALOG7212_DAC_R_CTRL,
-		DIALOG7212_HP_L_CTRL,
-		DIALOG7212_HP_R_CTRL,
-		DIALOG7212_MIXOUT_L_CTRL,
-		DIALOG7212_MIXOUT_R_CTRL,
-		DIALOG7212_CP_VOL_THRESHOLD1,
-        DIALOG7212_SYSTEM_STATUS,
-        DIALOG7212_DAC_L_GAIN,
-        DIALOG7212_DAC_R_GAIN,
-		DIALOG7212_MIXIN_L_SELECT,
-		DIALOG7212_MIXIN_R_SELECT,
-		DIALOG7212_MIXIN_L_GAIN,
-		DIALOG7212_MIXIN_R_GAIN,
-		DIALOG7212_ADC_L_GAIN,
-		DIALOG7212_ADC_R_GAIN,
-		DIALOG7212_AUX_L_CTRL,
-		DIALOG7212_AUX_R_CTRL,
-		DIALOG7212_MIXIN_L_CTRL,
-		DIALOG7212_MIXIN_R_CTRL,
-		DIALOG7212_ADC_L_CTRL,
-		DIALOG7212_ADC_R_CTRL,
-
-};
-
-static const uint8_t DA7212_gInitRegisterValuesSequence[DA7212_INIT_SIZE]=
-{
-		CLEAR_REGISTER,
-		(DIALOG7212_PLL_STATUS_MCLK_STATUS_MASK | DIALOG7212_PLL_STATUS_LOCK_MASK),
-		CLEAR_REGISTER,
-		CLEAR_REGISTER,
-		CLEAR_REGISTER,
-		CLEAR_REGISTER,
-		CLEAR_REGISTER,
-		DIALOG7212_SR_48KHZ,
-		DIALOG7212_REFERENCES_BIAS_EN_MASK,
-		DIALOG7212_FB_DIV_FRAC_TOP_48K,
-		DIALOG7212_FB_DIV_FRAC_BOT_48K,
-		DIALOG7212_FB_DIV_INTEGER_48K,
-		(DIALOG7212_PLL_EN_MASK | DIALOG7212_PLL_INDIV),
-		(DIALOG7212_DAI_CLK_EN_MASK | DIALOG7212_DAI_BCLKS_PER_WCLK_BCLK32),
-		(DIALOG7212_DAI_EN_MASK | DIALOG7212_DAI_OE__MASK | DIALOG7212_DAI_WORD_LENGTH_16B),
-		(DIALOG7212_DIG_ROUTING_DAC_R_RSC_DAC_R | DIALOG7212_DIG_ROUTING_DAC_L_RSC_DAC_L),
-		(DIALOG7212_CP_CTRL_EN_MASK | DIALOG7212_CP_CTRL_SMALL_SWIT_CH_FREQ_EN_MASK | DIALOG7212_CP_CTRL_MCHANGE_OUTPUT | DIALOG7212_CP_CTRL_MOD_CPVDD_1 | DIALOG7212_CP_CTRL_ANALOG_VLL_LV_BOOSTS_CP),
-		(DIALOG7212_MIXOUT_L_SELECT_DAC_L_MASK),
-		(DIALOG7212_MIXOUT_R_SELECT_DAC_R_MASK),
-		(DIALOG7212_DAC_L_CTRL_ADC_EN_MASK | DIALOG7212_DAC_L_CTRL_ADC_RAMP_EN_MASK),
-		(DIALOG7212_DAC_R_CTRL_ADC_EN_MASK | DIALOG7212_DAC_R_CTRL_ADC_RAMP_EN_MASK),
-		(DIALOG7212_HP_L_CTRL_AMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_L_CTRL_AMP_OE_MASK),
-		(DIALOG7212_HP_R_CTRL_AMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_RAMP_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_ZC_EN_MASK | DIALOG7212_HP_R_CTRL_AMP_OE_MASK),
-		(DIALOG7212_MIXOUT_L_CTRL_AMP_EN_MASK | DIALOG7212_MIXOUT_L_CTRL_AMP_SOFT_MIX_EN_MASK | DIALOG7212_MIXOUT_L_CTRL_AMP_MIX_EN_MASK),
-		(DIALOG7212_MIXOUT_R_CTRL_AMP_EN_MASK | DIALOG7212_MIXOUT_R_CTRL_AMP_SOFT_MIX_EN_MASK | DIALOG7212_MIXOUT_R_CTRL_AMP_MIX_EN_MASK),
-		(DIALOG7212_CP_VOL_THRESHOLD1_VDD2(0x32)),
-		CLEAR_REGISTER,
-		DA7212_DAC_GAIN_0DB,
-		DA7212_DAC_GAIN_0DB,
-		DIALOG7212_MIXIN_L_SELECT_AUX_L_SEL_MASK,
-		DIALOG7212_MIXIN_R_SELECT_AUX_R_SEL_MASK,
-		DIALOG7212_MIXIN_L_AMP_GAIN(0x03),
-		DIALOG7212_MIXIN_R_AMP_GAIN(0x03),
-		DIALOG7212_ADC_L_DIGITAL_GAIN(0x6F),
-		DIALOG7212_ADC_R_DIGITAL_GAIN(0x6F),
-		DIALOG7212_AUX_L_CTRL_AMP_EN_MASK|DIALOG7212_AUX_L_CTRL_AMP_RAMP_EN_MASK|DIALOG7212_AUX_L_CTRL_AMP_ZC_EN_MASK,
-		DIALOG7212_AUX_R_CTRL_AMP_EN_MASK|DIALOG7212_AUX_R_CTRL_AMP_RAMP_EN_MASK|DIALOG7212_AUX_R_CTRL_AMP_ZC_EN_MASK,
-		DIALOG7212_MIXIN_L_CTRL_AMP_EN_MASK|DIALOG7212_MIXIN_L_CTRL_AMP_MIX_EN_MASK,
-		DIALOG7212_MIXIN_R_CTRL_AMP_EN_MASK|DIALOG7212_MIXIN_R_CTRL_AMP_MIX_EN_MASK,
-		DIALOG7212_ADC_L_CTRL_ADC_EN_MASK|DIALOG7212_ADC_L_CTRL_ADC_RAMP_EN_MASK,
-		DIALOG7212_ADC_R_CTRL_ADC_EN_MASK|DIALOG7212_ADC_R_CTRL_ADC_RAMP_EN_MASK,
-};
-
-static const uint8_t DA7212_gVolumeControlValues[DA7212_MAX_VOLUME_STEPS]=
+static const uint8_t kVolumeControlValues[DA7212_MAX_VOLUME_STEPS]=
 {
 		DA7212_DAC_GAIN_MUTE,
 		DA7212_DAC_GAIN_M72DB,
@@ -441,110 +320,102 @@ static const uint8_t DA7212_gVolumeControlValues[DA7212_MAX_VOLUME_STEPS]=
 		DA7212_DAC_GAIN_M6DB,
 		DA7212_DAC_GAIN_0DB,
 		DA7213_DAC_GAIN_6DB,
-		DA7213_DAC_GAIN_12DB};
-
-static const  uint8_t DA7212_gChangeFreqRegisters[DA7212_CHANGE_FREQ_SIZE] = /**< Registers definitions to change frequency */
-{
-		DIALOG7212_PLL_CTRL,
-		DIALOG7212_SR,
-		DIALOG7212_PLL_FRAC_TOP,
-		DIALOG7212_PLL_FRAC_BOT,
-		DIALOG7212_PLL_INTEGER,
+		DA7213_DAC_GAIN_12DB
 };
 
-static const uint8_t DA7212_gchangeFreqValues[DA7212_SYS_FS_MAX][DA7212_CHANGE_FREQ_SIZE] =
+static const da7212_register_value_t kChangeFreqValues[DA7212_SYS_FS_MAX][DA7212_CHANGE_FREQ_SIZE] =
 {
 		{
 #if DA7212_8KHZ_16KHZ_32KHZ_48KHZ_96KHZ_NEED_PLL
-				DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_8KHZ,
-				DIALOG7212_FB_DIV_FRAC_TOP_8K,
-				DIALOG7212_FB_DIV_FRAC_BOT_8K,
-				DIALOG7212_FB_DIV_INTEGER_8K
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_8KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              DIALOG7212_FB_DIV_FRAC_TOP_8K, },
+				{ DIALOG7212_PLL_FRAC_BOT,              DIALOG7212_FB_DIV_FRAC_BOT_8K, },
+				{ DIALOG7212_PLL_INTEGER,               DIALOG7212_FB_DIV_INTEGER_8K },
 #else
-				DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_8KHZ,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_8KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_FRAC_BOT,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_INTEGER,               CLEAR_REGISTER },
 #endif
 		},
 		{
 #if DA7212_8KHZ_16KHZ_32KHZ_48KHZ_96KHZ_NEED_PLL
-				DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_16KHZ,
-				DIALOG7212_FB_DIV_FRAC_TOP_16K,
-				DIALOG7212_FB_DIV_FRAC_BOT_16K,
-				DIALOG7212_FB_DIV_INTEGER_16K
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_16KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              DIALOG7212_FB_DIV_FRAC_TOP_16K, },
+				{ DIALOG7212_PLL_FRAC_BOT,              DIALOG7212_FB_DIV_FRAC_BOT_16K, },
+				{ DIALOG7212_PLL_INTEGER,               DIALOG7212_FB_DIV_INTEGER_16K },
 #else
-				DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_16KHZ,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_16KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_FRAC_BOT,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_INTEGER,               CLEAR_REGISTER },
 #endif
 		},
 		{
 #if DA7212_8KHZ_16KHZ_32KHZ_48KHZ_96KHZ_NEED_PLL
-				DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_32KHZ,
-				DIALOG7212_FB_DIV_FRAC_TOP_32K,
-				DIALOG7212_FB_DIV_FRAC_BOT_32K,
-				DIALOG7212_FB_DIV_INTEGER_32K
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_32KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              DIALOG7212_FB_DIV_FRAC_TOP_32K, },
+				{ DIALOG7212_PLL_FRAC_BOT,              DIALOG7212_FB_DIV_FRAC_BOT_32K, },
+				{ DIALOG7212_PLL_INTEGER,               DIALOG7212_FB_DIV_INTEGER_32K },
 #else
-				DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_32KHZ,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_32KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_FRAC_BOT,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_INTEGER,               CLEAR_REGISTER },
 #endif
 
 
 		},
 		{
 #if DA7212_44_1KHZ_NEED_PLL
-				DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_44_1KHZ,
-				DIALOG7212_FB_DIV_FRAC_TOP_44_1K,
-				DIALOG7212_FB_DIV_FRAC_BOT_44_1K,
-				DIALOG7212_FB_DIV_INTEGER_44_1K
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_44_1KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              DIALOG7212_FB_DIV_FRAC_TOP_44_1K, },
+				{ DIALOG7212_PLL_FRAC_BOT,              DIALOG7212_FB_DIV_FRAC_BOT_44_1K, },
+				{ DIALOG7212_PLL_INTEGER,               DIALOG7212_FB_DIV_INTEGER_44_1K },
 #else
-				DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_44_1KHZ,,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_44_1KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_FRAC_BOT,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_INTEGER,               CLEAR_REGISTER },
 #endif
 		},
 		{
 #if DA7212_8KHZ_16KHZ_32KHZ_48KHZ_96KHZ_NEED_PLL
-				DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_48KHZ,
-				DIALOG7212_FB_DIV_FRAC_TOP_48K,
-				DIALOG7212_FB_DIV_FRAC_BOT_48K,
-				DIALOG7212_FB_DIV_INTEGER_48K
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_48KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              DIALOG7212_FB_DIV_FRAC_TOP_48K, },
+				{ DIALOG7212_PLL_FRAC_BOT,              DIALOG7212_FB_DIV_FRAC_BOT_48K, },
+				{ DIALOG7212_PLL_INTEGER,               DIALOG7212_FB_DIV_INTEGER_48K },
 #else
-				DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_48KHZ,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_48KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_FRAC_BOT,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_INTEGER,               CLEAR_REGISTER },
 #endif
 
 		},
 		{
 #if DA7212_8KHZ_16KHZ_32KHZ_48KHZ_96KHZ_NEED_PLL
-				DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_96KHZ,
-				DIALOG7212_FB_DIV_FRAC_TOP_96K,
-				DIALOG7212_FB_DIV_FRAC_BOT_96K,
-				DIALOG7212_FB_DIV_INTEGER_96K
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_EN_MASK|DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_96KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              DIALOG7212_FB_DIV_FRAC_TOP_96K, },
+				{ DIALOG7212_PLL_FRAC_BOT,              DIALOG7212_FB_DIV_FRAC_BOT_96K, },
+				{ DIALOG7212_PLL_INTEGER,               DIALOG7212_FB_DIV_INTEGER_96K },
 #else
-				DIALOG7212_PLL_INDIV,
-				DIALOG7212_SR_96KHZ,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER,
-				CLEAR_REGISTER
+				{ DIALOG7212_PLL_CTRL,                  DIALOG7212_PLL_INDIV, },
+				{ DIALOG7212_SR,                        DIALOG7212_SR_96KHZ, },
+				{ DIALOG7212_PLL_FRAC_TOP,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_FRAC_BOT,              CLEAR_REGISTER, },
+				{ DIALOG7212_PLL_INTEGER,               CLEAR_REGISTER },
 #endif
 		}
 
@@ -564,47 +435,28 @@ typedef struct {
 //                                   Static Variables Section
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// static volatile uint8_t DA7212_TimeOutFlag;
+typedef struct _da7212_context {
+    state_machine_t States;
+    volatile uint8_t DriverStatus;
 
-static volatile uint8_t DA7212_gDriverStatus;
+    uint32_t startTime;
+    uint8_t SysFs;
 
-static state_machine_t DA7212_gStates;
+    uint8_t RegisterOffset;
+    uint8_t  RegistersToWrite;
+    const da7212_register_value_t *WriteBlockRegister;
+    da7212_register_value_t RegistersToChange[10];
 
-static uint8_t  DA7212_gSysFs= DA7212_SYS_FS_48K;
+    uint8_t DataOutBuffer[DA7212_CONTROL_BUFFER_SIZE];
+    uint8_t *ReadData;
+    I2C_Type * i2cBase;
+    i2c_master_handle_t i2cHandle;
+    i2c_master_transfer_t i2cTransfer;
+    volatile bool i2cTransferCompleted;
+    status_t i2cTransferStatus;
+} da7212_context_t;
 
-static uint8_t DA7212_gDataOutBuffer[DA7212_CONTROL_BUFFER_SIZE];
-
-static uint8_t *DA7212_gReadData;
-
-static uint8_t DA7212_gRegisterOffset = 0;
-
-static uint8_t  DA7212_gRegistersToWrite = 0;
-
-static uint8_t *DA7212_gWriteBlockRegister;
-
-static uint8_t *DA7212_gWriteBlockRegisterValue;
-
-static uint8_t gbDA7212_gLDOTimer;
-
-static uint8_t DA7212_gRegistersToChange[10];
-
-static uint8_t DA7212_gValuesToChange[10];
-
-static uint32_t bytesRemaining;
-
-static uint32_t s_startTime = 0;
-
-static I2C_Type * s_i2cBase = NULL;
-static i2c_master_handle_t s_i2cHandle;
-static i2c_master_transfer_t s_i2cTransfer;
-static volatile bool s_i2cTransferCompleted = false;
-static status_t s_i2cTransferStatus;
-
-// static const i2c_device_t DA7212_I2C =
-// {
-// 		.address	=	DA7212_ADDRESS,
-// 		.baudRate_kbps = baudRate
-// };
+static da7212_context_t s_context;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //                                      Functions Section
@@ -612,7 +464,7 @@ static status_t s_i2cTransferStatus;
 
 uint32_t DA7212_GetStatus(void)
 {
-	return DA7212_gDriverStatus;
+	return s_context.DriverStatus;
 }
 
 void DA7212_WriteRegister(uint8_t u8Register, uint8_t u8RegisterData)
@@ -621,25 +473,24 @@ void DA7212_WriteRegister(uint8_t u8Register, uint8_t u8RegisterData)
 	DA7212_SET_STATUS(DA7212_STATUS_BUSY_MASK);
 
 	/* Set the command buffer to send the data thru physical layer */
-// 	DA7212_gDataOutBuffer[0] = u8Register;
-	DA7212_gDataOutBuffer[0] = u8RegisterData;
+	s_context.DataOutBuffer[0] = u8RegisterData;
 
-// 	I2C_MasterSendData(I2C1_instance,&DA7212_I2C,NULL,0,&DA7212_gDataOutBuffer[0],DA7212_CONTROL_BUFFER_SIZE);
+	s_context.i2cTransfer.flags = 0;
+	s_context.i2cTransfer.slaveAddress = DA7212_ADDRESS;
+	s_context.i2cTransfer.direction = kI2C_Write;
+	s_context.i2cTransfer.subaddress = u8Register;
+	s_context.i2cTransfer.subaddressSize = 1;
+	s_context.i2cTransfer.data = s_context.DataOutBuffer;
+	s_context.i2cTransfer.dataSize = 1;
 
-	s_i2cTransfer.flags = 0;
-	s_i2cTransfer.slaveAddress = DA7212_ADDRESS;
-	s_i2cTransfer.direction = kI2C_Write;
-	s_i2cTransfer.subaddress = u8Register;
-	s_i2cTransfer.subaddressSize = 1;
-	s_i2cTransfer.data = DA7212_gDataOutBuffer;
-	s_i2cTransfer.dataSize = 1;
+    s_context.i2cTransferCompleted = false;
 
-    s_i2cTransferCompleted = false;
+//     printf("DA7212: write reg 0x%02x = 0x%02x\r\n", u8Register, u8RegisterData);
+	while (I2C_MasterTransferNonBlocking(s_context.i2cBase, &s_context.i2cHandle, &s_context.i2cTransfer) == kStatus_I2C_Busy)
+	{
+	}
 
-    printf("DA7212: write reg 0x%02x = 0x%02x\r\n", u8Register, u8RegisterData);
-	I2C_MasterTransferNonBlocking(s_i2cBase, &s_i2cHandle, &s_i2cTransfer);
-
-	DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
+	s_context.States.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
 }
 
 void DA7212_ReadRegister(uint8_t u8Register, uint8_t *pu8RegisterData)
@@ -647,61 +498,74 @@ void DA7212_ReadRegister(uint8_t u8Register, uint8_t *pu8RegisterData)
 	/* Set the driver as busy and the next state logic */
 	DA7212_SET_STATUS(DA7212_STATUS_BUSY_MASK);	/* Set next state logic and write the register */
 
-	/* Setup control buffer */
-	DA7212_gDataOutBuffer[0] = u8Register;
-
 	/* Setup pointer to the RX buffer */
-	DA7212_gReadData = pu8RegisterData;
+	s_context.ReadData = pu8RegisterData;
 
 	/* Use physical layer */
-// 	I2C_DRV_MasterReceiveData(I2C1_instance,&DA7212_I2C,NULL,0,(uint8_t*)DA7212_gReadData,1);
+	s_context.i2cTransfer.flags = 0;
+	s_context.i2cTransfer.slaveAddress = DA7212_ADDRESS;
+	s_context.i2cTransfer.direction = kI2C_Read;
+	s_context.i2cTransfer.subaddress = u8Register;
+	s_context.i2cTransfer.subaddressSize = 1;
+	s_context.i2cTransfer.data = s_context.ReadData;
+	s_context.i2cTransfer.dataSize = 1;
 
-	s_i2cTransfer.flags = 0;
-	s_i2cTransfer.slaveAddress = DA7212_ADDRESS;
-	s_i2cTransfer.direction = kI2C_Read;
-	s_i2cTransfer.subaddress = u8Register;
-	s_i2cTransfer.subaddressSize = 1;
-	s_i2cTransfer.data = DA7212_gReadData;
-	s_i2cTransfer.dataSize = 1;
+	s_context.i2cTransferCompleted = false;
 
-	s_i2cTransferCompleted = false;
+	while (I2C_MasterTransferNonBlocking(s_context.i2cBase, &s_context.i2cHandle, &s_context.i2cTransfer) == kStatus_I2C_Busy)
+	{
+	}
 
-	I2C_MasterTransferNonBlocking(s_i2cBase, &s_i2cHandle, &s_i2cTransfer);
-
-	DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
+	s_context.States.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
 }
 
 void DA7212_Driver(void)
 {
-	DA7212_StateMachine[DA7212_gStates.actualState]();
+	DA7212_StateMachine[s_context.States.actualState]();
 }
 
 void DA7212_I2CCompletionCallback(I2C_Type *base, i2c_master_handle_t *handle, status_t status, void *userData)
 {
-    printf("DA7212: reg write complete; status = %d\r\n", status);
-    s_i2cTransferCompleted = true;
-    s_i2cTransferStatus = status;
+//     printf("DA7212: reg write complete; status = %d\r\n", status);
+    s_context.i2cTransferCompleted = true;
+    s_context.i2cTransferStatus = status;
+}
+
+void DA7212_Run(void)
+{
+    while (DA7212_GetStatus() & DA7212_STATUS_BUSY_MASK)
+    {
+        DA7212_Driver();
+    }
 }
 
 void DA7212_InitCodec(I2C_Type * base)
 {
-    s_i2cBase = base;
+    s_context.startTime = 0;
+    s_context.SysFs = DA7212_SYS_FS_48K;
+    s_context.RegisterOffset = 0;
+    s_context.RegistersToWrite = 0;
+    s_context.i2cBase = NULL;
+    s_context.i2cTransferCompleted = false;
 
-    I2C_MasterTransferCreateHandle(s_i2cBase, &s_i2cHandle, DA7212_I2CCompletionCallback, NULL);
+    s_context.i2cBase = base;
+
+    I2C_MasterTransferCreateHandle(s_context.i2cBase, &s_context.i2cHandle, DA7212_I2CCompletionCallback, NULL);
 
 	/* Set the driver as busy */
 	DA7212_SET_STATUS(DA7212_STATUS_BUSY_MASK);	/* Set next state logic and write the register */
 
 	/*Prepare to write reset configuration*/
-	DA7212_gRegistersToWrite = DA7212_INIT_SIZE;
-	DA7212_gWriteBlockRegister = (uint8_t *)&DA7212_gInitRegisterSequence[0];
-	DA7212_gWriteBlockRegisterValue = (uint8_t *)&DA7212_gInitRegisterValuesSequence[0];
+	s_context.RegistersToWrite = DA7212_INIT_SIZE;
+	s_context.WriteBlockRegister = &kInitRegisterSequence[0];
 
-	DA7212_gRegisterOffset = 0;
+	s_context.RegisterOffset = 0;
 
-	DA7212_gStates.actualState = DA7212_WRITE_BLOCK_STATE;
-	DA7212_gStates.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
-	DA7212_gStates.prevState = DA7212_CONTROL_STATE_IDLE;
+	s_context.States.actualState = DA7212_WRITE_BLOCK_STATE;
+	s_context.States.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
+	s_context.States.prevState = DA7212_CONTROL_STATE_IDLE;
+
+	DA7212_Run();
 }
 
 void DA7212_ChangeInput(eDA7212InputReg DA7212_Input)
@@ -709,14 +573,15 @@ void DA7212_ChangeInput(eDA7212InputReg DA7212_Input)
 	DA7212_SET_STATUS(DA7212_STATUS_BUSY_MASK);	/* Set next state logic and write the register */
 
 	/*Prepare to write reset configuration*/
-	DA7212_gRegistersToWrite = sizeof(DA7212_gInputRegisterSequence[DA7212_Input]);
-	DA7212_gWriteBlockRegister = (uint8_t *)&DA7212_gInputRegisterSequence[DA7212_Input][0];
-	DA7212_gWriteBlockRegisterValue = (uint8_t *)&DA7212_gInputRegisterValuesSequence[DA7212_Input][0];
+	s_context.RegistersToWrite = sizeof(kInputRegisterSequence[DA7212_Input]) / sizeof(da7212_register_value_t);
+	s_context.WriteBlockRegister = &kInputRegisterSequence[DA7212_Input][0];
 
-	DA7212_gRegisterOffset = 0;
-	DA7212_gStates.actualState = DA7212_WRITE_BLOCK_STATE;
-	DA7212_gStates.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
-	DA7212_gStates.prevState = DA7212_CONTROL_STATE_IDLE;
+	s_context.RegisterOffset = 0;
+	s_context.States.actualState = DA7212_WRITE_BLOCK_STATE;
+	s_context.States.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
+	s_context.States.prevState = DA7212_CONTROL_STATE_IDLE;
+
+	DA7212_Run();
 }
 
 void DA7212_ChangeOutput(eDA7212OutputReg DA7212_Output)
@@ -725,16 +590,18 @@ void DA7212_ChangeOutput(eDA7212OutputReg DA7212_Output)
 
 	/*Prepare to write reset configuration*/
 
-	DA7212_gRegistersToWrite = sizeof(DA7212_gOutputRegisterSequence[DA7212_Output]);
-	DA7212_gWriteBlockRegister = (uint8_t *)&DA7212_gOutputRegisterSequence[DA7212_Output][0];
-	DA7212_gWriteBlockRegisterValue = (uint8_t *)&DA7212_gOutputRegisterValuesSequence[DA7212_Output][0];
+	s_context.RegistersToWrite = sizeof(kOutputRegisterSequence[DA7212_Output]) / sizeof(da7212_register_value_t);
+	s_context.WriteBlockRegister = &kOutputRegisterSequence[DA7212_Output][0];
 
-	DA7212_gRegisterOffset = 0;
-	DA7212_gStates.actualState = DA7212_WRITE_BLOCK_STATE;
-	DA7212_gStates.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
-	DA7212_gStates.prevState = DA7212_CONTROL_STATE_IDLE;
+	s_context.RegisterOffset = 0;
+	s_context.States.actualState = DA7212_WRITE_BLOCK_STATE;
+	s_context.States.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
+	s_context.States.prevState = DA7212_CONTROL_STATE_IDLE;
 
+
+	DA7212_Run();
 }
+
 static void DA7212_IdleState(void)
 {
 	DA7212_CLEAR_STATUS(DA7212_STATUS_BUSY_MASK);
@@ -751,27 +618,28 @@ uint8_t DA7212_ChangeHPVolume(uint8_t bDigitalGaindBIndex)
 		/* Clear configured flag since will be configured again */
 		DA7212_CLEAR_STATUS(DA7212_STATUS_CONFIGURED_MASK);
 
-		DA7212_gRegistersToChange[0] = DIALOG7212_DAC_L_GAIN;
-		DA7212_gRegistersToChange[1] = DIALOG7212_DAC_R_GAIN;
-		DA7212_gValuesToChange[0] = DA7212_gVolumeControlValues[bDigitalGaindBIndex];
-		DA7212_gValuesToChange[1] = DA7212_gVolumeControlValues[bDigitalGaindBIndex];
+		s_context.RegistersToChange[0].addr = DIALOG7212_DAC_L_GAIN;
+		s_context.RegistersToChange[0].value = kVolumeControlValues[bDigitalGaindBIndex];
+		s_context.RegistersToChange[1].addr = DIALOG7212_DAC_R_GAIN;
+		s_context.RegistersToChange[1].value = kVolumeControlValues[bDigitalGaindBIndex];
 
-		DA7212_gRegistersToWrite = 2;
-		DA7212_gWriteBlockRegister = (uint8_t *)&DA7212_gRegistersToChange[0];
-		DA7212_gWriteBlockRegisterValue = (uint8_t *)&DA7212_gValuesToChange[0];
-		DA7212_gRegisterOffset = 0;
+		s_context.RegistersToWrite = 2;
+		s_context.WriteBlockRegister = &s_context.RegistersToChange[0];
+		s_context.RegisterOffset = 0;
 
-		DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
-		DA7212_gStates.nextState = DA7212_WRITE_BLOCK_STATE;
+		s_context.States.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
+		s_context.States.nextState = DA7212_WRITE_BLOCK_STATE;
 
 		bStatus = OK;
 
 	}else
 	{
 		DA7212_SET_STATUS(DA7212_STATUS_CONFIGURED_MASK);
-		DA7212_gStates.actualState = DA7212_CONTROL_STATE_IDLE;
-		DA7212_gStates.nextState = DA7212_CONTROL_STATE_WAIT_TIMEOUT;
+		s_context.States.actualState = DA7212_CONTROL_STATE_IDLE;
+		s_context.States.nextState = DA7212_CONTROL_STATE_WAIT_TIMEOUT;
 	}
+
+	DA7212_Run();
 
 	return(bStatus);
 }
@@ -782,26 +650,25 @@ void DA7212_Mute(uint8_t bMuteStatus)
 
 	if(DA7212_MUTE_ON == bMuteStatus)
 	{
-		DA7212_gValuesToChange[0] = DA7212_DAC_MUTE_ENABLED;
-		DA7212_gValuesToChange[1] = DA7212_DAC_MUTE_ENABLED;
+		s_context.RegistersToChange[0].value = DA7212_DAC_MUTE_ENABLED;
+		s_context.RegistersToChange[1].value = DA7212_DAC_MUTE_ENABLED;
 	}
 	else
 	{
-		DA7212_gValuesToChange[0] = DA7212_DAC_MUTE_DISABLED;
-		DA7212_gValuesToChange[1] = DA7212_DAC_MUTE_DISABLED;
+		s_context.RegistersToChange[0].value = DA7212_DAC_MUTE_DISABLED;
+		s_context.RegistersToChange[1].value = DA7212_DAC_MUTE_DISABLED;
 	}
 
-	DA7212_gRegistersToChange[0] = DIALOG7212_DAC_L_CTRL;
-	DA7212_gRegistersToChange[1] = DIALOG7212_DAC_R_CTRL;
+	s_context.RegistersToChange[0].addr = DIALOG7212_DAC_L_CTRL;
+	s_context.RegistersToChange[1].addr = DIALOG7212_DAC_R_CTRL;
 
-	DA7212_gRegistersToWrite = 2;
-	DA7212_gWriteBlockRegister = (uint8_t *)&DA7212_gRegistersToChange[0];
-	DA7212_gWriteBlockRegisterValue = (uint8_t *)&DA7212_gValuesToChange[0];
+	s_context.RegistersToWrite = 2;
+	s_context.WriteBlockRegister = &s_context.RegistersToChange[0];
 
-	DA7212_gStates.actualState = DA7212_WRITE_BLOCK_STATE;
+	s_context.States.actualState = DA7212_WRITE_BLOCK_STATE;
 
+	DA7212_Run();
 }
-
 
 uint8_t DA7212_ChangeFrequency(eDa7212SysFs dwNewFreqValue)
 {
@@ -819,35 +686,34 @@ uint8_t DA7212_ChangeFrequency(eDa7212SysFs dwNewFreqValue)
 		DA7212_CLEAR_STATUS(DA7212_STATUS_CONFIGURED_MASK);
 
 		/* set up the register and values table to be used */
-		if(DA7212_SYS_FS_44_1K == dwNewFreqValue || DA7212_SYS_FS_44_1K == DA7212_gSysFs)
+		if(DA7212_SYS_FS_44_1K == dwNewFreqValue || DA7212_SYS_FS_44_1K == s_context.SysFs)
 		{
 			/* the amount of registers to write changes when 44.1hz is selected */
-			DA7212_gRegistersToWrite = DA7212_441_PLL_REGISTERS_TO_WRITE;
+			s_context.RegistersToWrite = DA7212_441_PLL_REGISTERS_TO_WRITE;
 		}
 		else
 		{
-			DA7212_gRegistersToWrite = DA7212_16KHZ_32KHZ_48KHZ_96KHZ_PLL_REGISTERS_TO_WRITE;
+			s_context.RegistersToWrite = DA7212_16KHZ_32KHZ_48KHZ_96KHZ_PLL_REGISTERS_TO_WRITE;
 		}
 
 		/* set the new frequency */
-		DA7212_gSysFs = dwNewFreqValue;
+		s_context.SysFs = dwNewFreqValue;
 
 		/* set up the write block registers to the proper tables */
-		DA7212_gWriteBlockRegister = (uint8_t*)&DA7212_gChangeFreqRegisters[0];
-		DA7212_gWriteBlockRegisterValue = (uint8_t*)&DA7212_gchangeFreqValues[dwNewFreqValue][0];
-		DA7212_gRegisterOffset = 0;
+		s_context.WriteBlockRegister = &kChangeFreqValues[dwNewFreqValue][0];
+		s_context.RegisterOffset = 0;
 
 
-		DA7212_gStates.actualState = DA7212_WRITE_BLOCK_STATE;
-		DA7212_gStates.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
+		s_context.States.actualState = DA7212_WRITE_BLOCK_STATE;
+		s_context.States.nextState = DA7212_CONTROL_STATE_WAIT_COMM;
 
 
 	}
 	else
 	{
 		DA7212_SET_STATUS(DA7212_STATUS_CONFIGURED_MASK);
-		DA7212_gStates.actualState = DA7212_CONTROL_STATE_IDLE;
-		DA7212_gStates.nextState = DA7212_CONTROL_STATE_IDLE;
+		s_context.States.actualState = DA7212_CONTROL_STATE_IDLE;
+		s_context.States.nextState = DA7212_CONTROL_STATE_IDLE;
 	}
 	bStatus = OK;
 
@@ -855,39 +721,26 @@ uint8_t DA7212_ChangeFrequency(eDa7212SysFs dwNewFreqValue)
 	iAPSSIMaster_ChangeFreq(dwNewFreqValue);
 #endif
 
+	DA7212_Run();
+
 	return(bStatus);
 }
 
 static void DA7212_WaitCommState(void)
 {
-    if (s_i2cTransferCompleted)
+    if (s_context.i2cTransferCompleted)
     {
-        if (s_i2cTransferStatus == kStatus_Success)
+        if (s_context.i2cTransferStatus == kStatus_Success)
         {
-			DA7212_gStates.actualState = DA7212_gStates.nextState;
+			s_context.States.actualState = s_context.States.nextState;
         }
         else
         {
 			/* a NACK or time out was received*/
 			DA7212_SET_STATUS(DA7212_STATUS_I2C_ERROR_MASK);
-			DA7212_gStates.actualState = DA7212_gStates.nextState;
+			s_context.States.actualState = s_context.States.nextState;
         }
     }
-
-	/*Check for the physical layer driver to be free*/
-// 	if(!(I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)==kStatus_I2C_Busy))
-// 	{
-// 		if((I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)!=kStatus_I2C_ReceivedNak)&&(I2C_DRV_MasterGetSendStatus(I2C1_instance, &bytesRemaining)!=kStatus_I2C_Timeout))
-// 		{
-// 			DA7212_gStates.actualState = DA7212_gStates.nextState;
-// 		}
-// 		else
-// 		{
-// 			/* a NACK or time out was received*/
-// 			DA7212_SET_STATUS(DA7212_STATUS_I2C_ERROR_MASK);
-// 			DA7212_gStates.actualState = DA7212_gStates.nextState;
-// 		}
-// 	}
 }
 
 
@@ -896,19 +749,19 @@ static void DA7212_WriteBlockState(void)
 	/*retries if the I2C driver reported an error*/
 	if(DA7212_CHECK_STATUS(DA7212_STATUS_I2C_ERROR_MASK))
 	{
-		DA7212_gRegisterOffset--;
+		s_context.RegisterOffset--;
 		DA7212_CLEAR_STATUS(DA7212_STATUS_I2C_ERROR_MASK);
 	}
 
 	/* Check if there is any other write registers */
-	if(DA7212_gRegisterOffset < DA7212_gRegistersToWrite)
+	if(s_context.RegisterOffset < s_context.RegistersToWrite)
 	{
 		/* Take the register and the data to be written */
-        DA7212_WriteRegister(DA7212_gWriteBlockRegister[DA7212_gRegisterOffset], DA7212_gWriteBlockRegisterValue[DA7212_gRegisterOffset]);
+        DA7212_WriteRegister(s_context.WriteBlockRegister[s_context.RegisterOffset].addr, s_context.WriteBlockRegister[s_context.RegisterOffset].value);
 
-		DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
-		DA7212_gStates.nextState = DA7212_WRITE_BLOCK_STATE;
-		DA7212_gRegisterOffset++;
+		s_context.States.actualState = DA7212_CONTROL_STATE_WAIT_COMM;
+		s_context.States.nextState = DA7212_WRITE_BLOCK_STATE;
+		s_context.RegisterOffset++;
 	}
 	else
 	{
@@ -916,28 +769,28 @@ static void DA7212_WriteBlockState(void)
 		 if(DA7212_CHECK_STATUS(DA7212_STATUS_STARTUP_DONE_MASK))
          {
 			DA7212_SET_STATUS(DA7212_STATUS_CONFIGURED_MASK);
-			DA7212_gStates.actualState = DA7212_CONTROL_STATE_IDLE;
+			s_context.States.actualState = DA7212_CONTROL_STATE_IDLE;
          }
          else
          {
         	/* a >40ms delay is required after initialization to enable the LDO 						*/
 			/* From Dialog Apps Engineer: This allows the bandgap internal voltage reference to settle	*/
 
-            s_startTime = ar_get_millisecond_count();
+            s_context.startTime = ar_get_millisecond_count();
 
         	/* reserve a timer and start it */
-//  			gbDA7212_gLDOTimer = SWTimer_AllocateChannel(DA7212_50MS_TIMEOUT,DA7212_SWTimerCallback);
-//  			SWTimer_EnableTimer(gbDA7212_gLDOTimer);
+//  			gbs_context.LDOTimer = SWTimer_AllocateChannel(DA7212_50MS_TIMEOUT,DA7212_SWTimerCallback);
+//  			SWTimer_EnableTimer(gbs_context.LDOTimer);
 
 			/* set the startup done mask */
 			DA7212_SET_STATUS(DA7212_STATUS_STARTUP_DONE_MASK);
 
 			/* wait for the delay */
-			DA7212_gStates.actualState = DA7212_CONTROL_STATE_WAIT_TIMEOUT;
+			s_context.States.actualState = DA7212_CONTROL_STATE_WAIT_TIMEOUT;
          }
 
 		 /* When finished, set IDLE state to Actual and Next states */
-		 DA7212_gRegisterOffset = 0;
+		 s_context.RegisterOffset = 0;
 	}
 
 }
@@ -948,23 +801,24 @@ static void DA7212_TimeoutState(void)
 
 	/* poll the SW timer */
 // 	if(DA7212_TimeOutFlag)
-    if (now - s_startTime >= 40)
+    if (now - s_context.startTime >= 40)
 	{
 		/* once the SW timer has expired, enable the LDO*/
 		DA7212_WriteRegister(DIALOG7212_LDO_CTRL,DIALOG7212_LDO_CTRL_EN_MASK);
 
 		/* the timer won't be needed, release it */
 // 		DA7212_TimeOutFlag = 0;
-// 		SWTimer_DisableTimer(gbDA7212_gLDOTimer);
+// 		SWTimer_DisableTimer(gbs_context.LDOTimer);
 		/* go to idle */
-		DA7212_gStates.nextState = DA7212_CONTROL_STATE_IDLE;
+		s_context.States.nextState = DA7212_CONTROL_STATE_IDLE;
 	}
 }
 
-void DA7212_SWTimerCallback (void)
-{
+// void DA7212_SWTimerCallback (void)
+// {
 // 	DA7212_TimeOutFlag = 1;
-}
+// }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // EOF
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -332,25 +332,8 @@ void audio_init_thread(void * arg)
 
     // Configure audio codec
     DA7212_InitCodec(BOARD_CODEC_I2C_BASE);
-
-    while (DA7212_GetStatus() & DA7212_STATUS_BUSY_MASK)
-    {
-        DA7212_Driver();
-    }
-
     DA7212_ChangeFrequency(DA7212_SYS_FS_32K);
-
-    while (DA7212_GetStatus() & DA7212_STATUS_BUSY_MASK)
-    {
-        DA7212_Driver();
-    }
-
     DA7212_ChangeInput(DA7212_Input_MIC1_Dig);
-
-    while (DA7212_GetStatus() & DA7212_STATUS_BUSY_MASK)
-    {
-        DA7212_Driver();
-    }
 
     init_audio_synth();
 
