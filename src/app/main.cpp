@@ -324,7 +324,7 @@ void audio_init_thread(void * arg)
     format.channel = 0U;
     format.sampleRate_Hz = kSAI_SampleRate32KHz;
     format.masterClockHz = OVER_SAMPLE_RATE * format.sampleRate_Hz;
-    format.protocol = kSAI_BusLeftJustified;
+    format.protocol = kSAI_BusI2S;
     format.stereo = kSAI_Stereo;
     format.watermark = FSL_FEATURE_SAI_FIFO_COUNT / 2U;
 
