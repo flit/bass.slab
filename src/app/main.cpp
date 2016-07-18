@@ -493,7 +493,7 @@ void init_thread(void * arg)
 
 int main(void)
 {
-    g_initThread = new Ar::Thread("init", init_thread, 0, NULL, 1500, 60, kArStartThread);
+    g_initThread = new Ar::Thread("init", init_thread, 0, NULL, 2500, 60, kArStartThread);
 
     ar_kernel_run();
 }
