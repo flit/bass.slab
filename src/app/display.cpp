@@ -72,7 +72,7 @@ void DisplayController::display_thread()
     uint32_t row = 6;
     uint32_t n;
 
-    set_output_enable(true);
+    set_output_enable(false);
 
     while (1)
     {

@@ -104,6 +104,10 @@ void init_board()
         .pinDirection = kGPIO_DigitalOutput,
         .outputLogic = 1,
     };
+    const gpio_pin_config_t gpioOut0 = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 0,
+    };
     GPIO_PinInit(PIN_RED_LED_GPIO, PIN_RED_LED_BIT, &gpioOut1);
     GPIO_PinInit(PIN_GREEN_LED_GPIO, PIN_GREEN_LED_BIT, &gpioOut1);
     GPIO_PinInit(PIN_BLUE_LED_GPIO, PIN_BLUE_LED_BIT, &gpioOut1);
@@ -123,6 +127,8 @@ void init_board()
     // PTB11 = nOE
     PORT_SetPinMux(PIN_LATCH_PORT, PIN_LATCH_BIT, kPORT_MuxAsGpio);
     PORT_SetPinMux(PIN_nOE_PORT, PIN_nOE_BIT, kPORT_MuxAsGpio);
+    GPIO_PinInit(PIN_LATCH_GPIO, PIN_LATCH_BIT, &gpioOut0);
+    GPIO_PinInit(PIN_nOE_GPIO, PIN_nOE_BIT, &gpioOut1);
 
     // Row select pins
     // PTC2 = ROW_A0
@@ -134,10 +140,6 @@ void init_board()
     PORT_SetPinMux(PIN_ROW_A2_PORT, PIN_ROW_A2_BIT, kPORT_MuxAsGpio);
     PORT_SetPinMux(PIN_ROW_EN_PORT, PIN_ROW_EN_BIT, kPORT_MuxAsGpio);
 
-    const gpio_pin_config_t gpioOut0 = {
-        .pinDirection = kGPIO_DigitalOutput,
-        .outputLogic = 0,
-    };
     GPIO_PinInit(PIN_ROW_A0_GPIO, PIN_ROW_A0_BIT, &gpioOut0);
     GPIO_PinInit(PIN_ROW_A1_GPIO, PIN_ROW_A1_BIT, &gpioOut0);
     GPIO_PinInit(PIN_ROW_A2_GPIO, PIN_ROW_A2_BIT, &gpioOut0);
