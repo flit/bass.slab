@@ -99,6 +99,11 @@ ar_status_t ar_timer_internal_start(ar_timer_t * timer, uint32_t wakeupTime)
     timer->m_wakeupTime = wakeupTime;
     timer->m_isActive = true;
 
+    timer->m_runLoop->m_timers.add(timer);
+
+    // Wake runloop so it will recompute its sleep time.
+    ar_runloop_wake(timer->m_runLoop);
+
     return kArSuccess;
 }
 
@@ -108,6 +113,10 @@ ar_status_t ar_timer_start(ar_timer_t * timer)
     if (!timer)
     {
         return kArInvalidParameterError;
+    }
+    if (!timer->m_runLoop)
+    {
+        return kArTimerNoRunLoop;
     }
 
     // The callback should have been verified by the create function.
@@ -135,6 +144,10 @@ ar_status_t ar_timer_stop(ar_timer_t * timer)
     {
         return kArTimerNotRunningError;
     }
+    if (!timer->m_runLoop)
+    {
+        return kArTimerNoRunLoop;
+    }
 
     // Handle irq state by deferring the operation.
     if (ar_port_get_irq_state() && !g_ar.isExecutingDeferred)
@@ -145,7 +158,14 @@ ar_status_t ar_timer_stop(ar_timer_t * timer)
     {
         KernelLock guard;
 
-        g_ar.activeTimers.remove(timer);
+        if (timer->m_runLoop)
+        {
+            timer->m_runLoop->m_timers.remove(timer);
+
+            // Wake runloop so it will recompute its sleep time.
+            ar_runloop_wake(timer->m_runLoop);
+        }
+
         timer->m_wakeupTime = 0;
         timer->m_isActive = false;
     }
@@ -156,7 +176,7 @@ ar_status_t ar_timer_stop(ar_timer_t * timer)
 // See ar_kernel.h for documentation of this function.
 ar_status_t ar_timer_set_delay(ar_timer_t * timer, uint32_t delay)
 {
-    if (!timer)
+    if (!timer || !delay)
     {
         return kArInvalidParameterError;
     }
@@ -169,12 +189,11 @@ ar_status_t ar_timer_set_delay(ar_timer_t * timer, uint32_t delay)
         // If the timer is running, we need to update the wakeup time and resort the list.
         if (timer->m_isActive)
         {
-            timer->m_wakeupTime = g_ar.tickCount + timer->m_delay;
+            // If the timer is active, it should already have a runloop set.
+            assert(timer->m_runLoop);
 
-            g_ar.activeTimers.remove(timer);
-            g_ar.activeTimers.add(timer);
-
-            // TODO update scheduler next wakeup time
+            uint32_t wakeupTime = g_ar.tickCount + timer->m_delay;
+            ar_timer_internal_start(timer, wakeupTime);
         }
     }
 

@@ -85,14 +85,14 @@ typedef struct _ar_kernel {
     ar_list_t readyList;         //!< List of threads ready to run.
     ar_list_t suspendedList;     //!< List of suspended threads.
     ar_list_t sleepingList;      //!< List of sleeping threads.
-    ar_list_t activeTimers;       //!< List of running timers
     ar_deferred_action_queue_t deferredActions; //!< Actions deferred from interrupt context.
-    uint16_t lockCount;             //!< Whether the kernel is locked.
     uint32_t isRunning:1;                 //!< True if the kernel has been started.
     uint32_t needsReschedule:1;           //!< True if we need to reschedule once the kernel is unlocked.
     uint32_t isExecutingDeferred:1;       //!< True if deferred actions are being performed.
     uint32_t _reservedFlags:29;
+    int32_t lockCount;             //!< Whether the kernel is locked.
     volatile uint32_t tickCount;    //!< Current tick count.
+    int32_t missedTickCount;       //!< Number of ticks that occurred while the kernel was locked.
     uint32_t nextWakeup;            //!< Time of the next wakeup event.
     volatile unsigned systemLoad;   //!< Percent of system load from 0-100. The volatile is necessary so that the IAR optimizer doesn't remove the entire load calculation loop of the idle_entry() function.
     ar_thread_t idleThread;         //!< The lowest priority thread in the system. Executes only when no other threads are ready.
@@ -135,6 +135,8 @@ void ar_kernel_run_deferred_actions();
 void ar_kernel_scheduler(void);
 uint32_t ar_kernel_get_next_wakeup_time();
 bool ar_kernel_run_timers(ar_list_t & timersList);
+ar_status_t ar_timer_internal_start(ar_timer_t * timer, uint32_t wakeupTime);
+void ar_runloop_wake(ar_runloop_t * runloop);
 //@}
 
 //! @name Deferred actions
@@ -196,10 +198,10 @@ public:
     //! @brief Saves lock state then modifies it.
     KernelGuard()
     {
-        m_savedMask = ar_port_set_lock(E);
+//         m_savedMask = ar_port_set_lock(E);
         if (E)
         {
-            ++g_ar.lockCount;
+            ar_atomic_inc(&g_ar.lockCount);
         }
         else
         {
@@ -207,7 +209,7 @@ public:
             {
                 Ar::_halt();
             }
-            --g_ar.lockCount;
+            ar_atomic_dec(&g_ar.lockCount);
         }
     }
 
@@ -220,8 +222,8 @@ public:
             {
                 Ar::_halt();
             }
-            --g_ar.lockCount;
-            ar_port_set_lock(!E);
+            ar_atomic_dec(&g_ar.lockCount);
+//             ar_port_set_lock(!E);
             if (g_ar.lockCount == 0 && g_ar.needsReschedule)
             {
                 ar_kernel_enter_scheduler();
@@ -229,13 +231,13 @@ public:
         }
         else
         {
-            ++g_ar.lockCount;
-            ar_port_set_lock(!E);
+            ar_atomic_inc(&g_ar.lockCount);
+//             ar_port_set_lock(!E);
         }
     }
 
 private:
-    bool m_savedMask;    //!< The lock state saved by the constructor.
+//     bool m_savedMask;    //!< The lock state saved by the constructor.
 };
 
 typedef KernelGuard<true> KernelLock;  //!< Lock kernel.

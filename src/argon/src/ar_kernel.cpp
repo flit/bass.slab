@@ -88,8 +88,8 @@ bool ar_kernel_run_timers(ar_list_t & timersList)
                     break;
 
                 case kArPeriodicTimer:
-                    // Restart a periodic timer.
-                    ar_timer_start(timer);
+                    // Restart a periodic timer without introducing jitter.
+                    ar_timer_internal_start(timer, timer->m_wakeupTime + timer->m_delay);
                     break;
             }
 
@@ -124,14 +124,6 @@ void idle_entry(void * param)
 
     while (1)
     {
-        // If we handled any timers, we need to set our priority back to the normal idle thread
-        // priority. The tick handler will have raised our priority to the max in order to handle
-        // the expired timers.
-        if (ar_kernel_run_timers(g_ar.activeTimers))
-        {
-            ar_thread_set_priority(&g_ar.idleThread, kArIdleThreadPriority);
-        }
-
         // Compute system load.
 #if AR_ENABLE_SYSTEM_LOAD
         ticks = g_ar.tickCount;
@@ -174,6 +166,10 @@ void idle_entry(void * param)
             last = ticks;
         }
 #endif // AR_ENABLE_SYSTEM_LOAD
+
+        while (g_ar.tickCount < g_ar.nextWakeup)
+        {
+        }
 
 #if AR_ENABLE_IDLE_SLEEP
         __DSB();
@@ -224,7 +220,6 @@ void ar_kernel_run(void)
     g_ar.readyList.m_predicate = ar_thread_sort_by_priority;
     g_ar.suspendedList.m_predicate = NULL;
     g_ar.sleepingList.m_predicate = ar_thread_sort_by_wakeup;
-    g_ar.activeTimers.m_predicate = ar_timer_sort_by_wakeup;
 
     // Create the idle thread. Priority 1 is passed to init function to pass the
     // assertion and then set to the correct 0 manually.
@@ -258,32 +253,27 @@ void ar_kernel_periodic_timer_isr()
         return;
     }
 
-    // Get the elapsed time since the last timer tick.
-#if AR_ENABLE_TICKLESS_IDLE
-    uint32_t elapsed_ms = ar_port_get_timer_elapsed_us() / 10000;
-
-    // Process elapsed time. Invoke the scheduler if any threads were woken.
-    if (ar_kernel_increment_tick_count(elapsed_ms))
-    {
-        if (g_ar.lockCount)
-        {
-            g_ar.needsReschedule = true;
-        }
-        else
-        {
-            ar_port_service_call();
-        }
-    }
-#else // AR_ENABLE_TICKLESS_IDLE
-    ar_kernel_increment_tick_count(1);
+    // If the kernel is locked, record that we missed this tick and come back as soon
+    // as the kernel gets unlocked.
     if (g_ar.lockCount)
     {
+        ++g_ar.missedTickCount;
         g_ar.needsReschedule = true;
+        return;
     }
-    else
+
+#if AR_ENABLE_TICKLESS_IDLE
+    // Get the elapsed time since the last timer tick.
+    uint32_t us = ar_port_get_timer_elapsed_us();
+    uint32_t elapsed_ticks = us / 10000;
+    // Process elapsed time. Invoke the scheduler if any threads were woken.
+    if (ar_kernel_increment_tick_count(elapsed_ticks))
     {
         ar_port_service_call();
     }
+#else // AR_ENABLE_TICKLESS_IDLE
+    ar_kernel_increment_tick_count(1);
+    ar_port_service_call();
 #endif // AR_ENABLE_TICKLESS_IDLE
 
     // This case should never happen because of the idle thread.
@@ -301,6 +291,20 @@ uint32_t ar_kernel_yield_isr(uint32_t topOfStack)
     if (g_ar.currentThread)
     {
         g_ar.currentThread->m_stackPointer = reinterpret_cast<uint8_t *>(topOfStack);
+    }
+
+    // Handle any missed ticks.
+    {
+        uint32_t missedTicks = g_ar.missedTickCount;
+        while (!ar_atomic_cas(&g_ar.missedTickCount, missedTicks, 0))
+        {
+            missedTicks = g_ar.missedTickCount;
+        }
+
+        if (missedTicks)
+        {
+            ar_kernel_increment_tick_count(missedTicks);
+        }
     }
 
     // Process any deferred actions.
@@ -392,18 +396,6 @@ bool ar_kernel_increment_tick_count(unsigned ticks)
 
             node = next;
         } while (g_ar.sleepingList.m_head && node != g_ar.sleepingList.m_head);
-    }
-
-    // Check for an active timer whose wakeup time has expired.
-    if (g_ar.activeTimers.m_head)
-    {
-        ar_timer_t * timer = g_ar.activeTimers.m_head->getObject<ar_timer_t>();
-        if (timer->m_wakeupTime <= g_ar.tickCount)
-        {
-            // Raise the idle thread priority to maximum so it can execute the timer.
-            // The idle thread will reduce its own priority when done.
-            ar_thread_set_priority(&g_ar.idleThread, kArMaxThreadPriority);
-        }
     }
 
     return wasThreadWoken;
@@ -577,9 +569,9 @@ uint32_t ar_kernel_get_next_wakeup_time()
     node = g_ar.readyList.m_head;
     assert(node);
     uint8_t pri1 = node->getObject<ar_thread_t>()->m_priority;
-    node = node->m_next;
-    if (node)
+    if (node->m_next != node)
     {
+        node = node->m_next;
         uint8_t pri2 = node->getObject<ar_thread_t>()->m_priority;
 
         // Check
@@ -599,19 +591,6 @@ uint32_t ar_kernel_get_next_wakeup_time()
         if (wakeup == 0 || sleepWakeup < wakeup)
         {
             wakeup = sleepWakeup;
-        }
-    }
-
-    // Check for an active timer. Again, the list is sorted by wakeup time.
-    node = g_ar.activeTimers.m_head;
-    if (node)
-    {
-        ar_timer_t * timer = node->getObject<ar_timer_t>();
-        uint32_t timerWakeup = timer->m_wakeupTime;
-
-        if (wakeup == 0 || timerWakeup < wakeup)
-        {
-            wakeup = timerWakeup;
         }
     }
 
@@ -824,7 +803,7 @@ ar_status_t ar_post_deferred_action(ar_deferred_action_type_t action, void * obj
         return kArQueueFullError;
     }
 
-    int index = ar_atomic_increment(&g_ar.deferredActions.m_count);
+    int index = ar_atomic_inc(&g_ar.deferredActions.m_count);
 
     g_ar.deferredActions.m_actions[index] = action;
     g_ar.deferredActions.m_objects[index] = object;
@@ -836,7 +815,7 @@ ar_status_t ar_post_deferred_action(ar_deferred_action_type_t action, void * obj
 
 ar_status_t ar_post_deferred_action2(ar_deferred_action_type_t action, void * object, void * arg)
 {
-    if (g_ar.deferredActions.m_count >= AR_DEFERRED_ACTION_QUEUE_SIZE)
+    if (g_ar.deferredActions.m_count >= AR_DEFERRED_ACTION_QUEUE_SIZE - 1)
     {
         assert(false);
         return kArQueueFullError;

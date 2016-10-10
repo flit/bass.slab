@@ -51,7 +51,7 @@ enum _ar_timeouts
     kArNoTimeout = 0,
 
     //! Pass this value to wait forever to acquire a resource.
-    kArInfiniteTimeout = 0xffffffffL
+    kArInfiniteTimeout = 0xffffffffUL
 };
 
 //! @brief Argon status and error codes.
@@ -94,6 +94,9 @@ typedef enum _ar_status {
 
     //! The timer is not running.
     kArTimerNotRunningError,
+
+    //! The timer is not associated with a run loop.
+    kArTimerNoRunLoop,
 
     //! Allocation failed.
     kArOutOfMemoryError,
@@ -177,10 +180,10 @@ typedef void (*ar_timer_entry_t)(ar_timer_t * timer, void * param);
 typedef void (*ar_runloop_function_t)(void * param);
 
 //! @brief
-typedef void (*ar_runloop_queue_handler_t)(ar_queue_t * queue, void * value);
+typedef void (*ar_runloop_queue_handler_t)(ar_queue_t * queue, void * param);
 
 //! @brief
-typedef void (*ar_runloop_channel_handler_t)(ar_channel_t * channel, void * value);
+typedef void (*ar_runloop_channel_handler_t)(ar_channel_t * channel, void * param);
 //@}
 
 //! @name Linked lists
@@ -247,7 +250,7 @@ typedef struct _ar_thread {
     uint32_t m_wakeupTime;          //!< Tick count when a sleeping thread will awaken.
     ar_status_t m_unblockStatus;       //!< Status code to return from a blocking function upon unblocking.
     void * m_channelData;       //!< Receive or send data pointer for blocked channel.
-    ar_runloop_t * m_runLoop;
+    ar_runloop_t * m_runLoop;   //!< Run loop associated with this thread.
 
     // Internal utility methods.
 #if defined(__cplusplus)
@@ -316,6 +319,8 @@ typedef struct _ar_queue {
     ar_list_t m_receiveBlockedList; //!< List of threads blocked waiting to receive data.
     ar_runloop_t * m_runLoop;
     ar_list_node_t m_runLoopNode;
+    ar_runloop_queue_handler_t m_runLoopHandler;
+    void * m_runLoopHandlerParam;
 #if AR_GLOBAL_OBJECT_LISTS
     ar_list_node_t m_createdNode;   //!< Created list node.
 #endif // AR_GLOBAL_OBJECT_LISTS
@@ -353,13 +358,14 @@ typedef struct _ar_runloop {
     ar_list_t m_timers;
     ar_list_t m_queues;
     ar_list_t m_channels;
-    struct {
+    struct _ar_runloop_function_info {
         ar_runloop_function_t function;
         void * param;
     } m_functions[AR_RUNLOOP_FUNCTION_QUEUE_SIZE];
     uint16_t m_functionCount;
     uint16_t m_functionHead;
     uint16_t m_functionTail;
+    bool m_isRunning;
     volatile bool m_stop;
 #if AR_GLOBAL_OBJECT_LISTS
     ar_list_node_t m_createdNode;   //!< Created list node.
@@ -955,7 +961,7 @@ ar_status_t ar_runloop_create(ar_runloop_t * runloop, const char * name, ar_thre
 
 ar_status_t ar_runloop_delete(ar_runloop_t * runloop);
 
-ar_runloop_status_t ar_runloop_run(ar_runloop_t * runloop, uint32_t timeout, void * object, void * value);
+ar_runloop_status_t ar_runloop_run(ar_runloop_t * runloop, uint32_t timeout, void ** object);
 
 ar_status_t ar_runloop_stop(ar_runloop_t * runloop);
 
@@ -963,9 +969,9 @@ ar_status_t ar_runloop_perform(ar_runloop_t * runloop, ar_runloop_function_t fun
 
 ar_status_t ar_runloop_add_timer(ar_runloop_t * runloop, ar_timer_t * timer);
 
-ar_status_t ar_runloop_add_queue(ar_runloop_t * runloop, ar_queue_t * queue, ar_runloop_queue_handler_t callback);
+ar_status_t ar_runloop_add_queue(ar_runloop_t * runloop, ar_queue_t * queue, ar_runloop_queue_handler_t callback, void * param);
 
-ar_status_t ar_runloop_add_channel(ar_runloop_t * runloop, ar_channel_t * channel, ar_runloop_channel_handler_t callback);
+ar_status_t ar_runloop_add_channel(ar_runloop_t * runloop, ar_channel_t * channel, ar_runloop_channel_handler_t callback, void * param);
 
 ar_runloop_t * ar_runloop_get_current(void);
 
@@ -1015,24 +1021,50 @@ static inline uint32_t ar_milliseconds_to_ticks(uint32_t milliseconds) { return 
 //! @name Atomic operations
 //@{
 /*!
- * @brief Atomic add.
+ * @brief Atomic add operation.
+ *
+ * A memory barrier is performed prior to the add operation.
+ *
+ * @param value Pointer to the word to add to.
+ * @param delta Signed value to atomically add to *value.
+ * @return The original value is returned.
  */
 int32_t ar_atomic_add(volatile int32_t * value, int32_t delta);
 
 /*!
- * @brief Atomic increment.
+ * @brief Atomically increment a value.
+ *
+ * @param value Pointer to the word to increment.
+ * @return The original value is returned.
  */
-static inline int32_t ar_atomic_increment(volatile int32_t * value) { return ar_atomic_add(value, 1); }
+static inline int32_t ar_atomic_inc(volatile int32_t * value) { return ar_atomic_add(value, 1); }
 
 /*!
- * @brief Atomic decrement.
+ * @brief Atomically decrement a value.
+ *
+ * @param value Pointer to the word to decrement.
+ * @return The original value is returned.
  */
-static inline int32_t ar_atomic_decrement(volatile int32_t * value) { return ar_atomic_add(value, -1); }
+static inline int32_t ar_atomic_dec(volatile int32_t * value) { return ar_atomic_add(value, -1); }
 
 /*!
- * @brief Atomic compare-and-swap operation.
+ * @brief Atomic compare and swap operation.
+ *
+ * Tests the word pointed to by @a value for equality with @a oldValue. If they are
+ * equal, the word pointed to by @a value is set to @a newValue. If *value is not
+ * equal to @a oldValue, then no change is made. The return value indicates whether
+ * the swap was performed. Of course, this entire operation is guaranteed to be
+ * atomic even on multiprocessor platforms.
+ *
+ * A memory barrier is performed prior to the compare and swap operation.
+ *
+ * @param value Pointer to the word to compare and swap.
+ * @param expectedValue Value to compare against.
+ * @param newValue Value to value to swap in if *value is equal to oldValue.
+ * @retval false No change was made to *value.
+ * @retval true The swap was performed, and *value is now equal to newValue.
  */
-bool ar_atomic_compare_and_swap(volatile int32_t * value, int32_t expectedValue, int32_t newValue);
+bool ar_atomic_cas(volatile int32_t * value, int32_t expectedValue, int32_t newValue);
 //@}
 
 //! @}

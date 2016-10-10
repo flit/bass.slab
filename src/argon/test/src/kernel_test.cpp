@@ -29,9 +29,8 @@
 
 #include "argon/argon.h"
 #include "argon/test/kernel_test.h"
-#include "mbed.h"
 #include <stdio.h>
-#include <cstdarg>
+#include <stdarg.h>
 
 //------------------------------------------------------------------------------
 // Code
@@ -40,7 +39,7 @@
 const char * KernelTest::threadIdString() const
 {
     static char idString[32];
-    snprintf(idString, sizeof(idString), "[%d:%s]", us_ticker_read(), self()->getName());
+    snprintf(idString, sizeof(idString), "[%d:%s]", ar_get_tick_count(), self()->getName());
     return idString;
 }
 
