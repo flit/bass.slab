@@ -205,7 +205,7 @@ void ar_kernel_enter_scheduler(void)
     }
     else
     {
-        assert(false);
+        g_ar.needsReschedule = true;
     }
 }
 
@@ -420,10 +420,14 @@ void ar_kernel_run_deferred_actions()
 
     assert(g_ar.lockCount == 0);
 
+    g_ar.isExecutingDeferred = true;
+
     // Examine and process each action in sequence.
     int i = 0;
     ar_deferred_action_queue_t & queue = g_ar.deferredActions;
-    for (; i < queue.m_count; ++i)
+    // Read the queue count once so we're ok if an IRQ fires and another action is put in the queue.
+    uint32_t queueCount = queue.m_count;
+    for (; i < queueCount; ++i)
     {
         void * object = queue.m_objects[i];
         switch (queue.m_actions[i])
@@ -432,10 +436,10 @@ void ar_kernel_run_deferred_actions()
                 // This entry contained the value for the previous action.
                 break;
             case kArDeferredSemaphorePut:
-                ar_semaphore_put(reinterpret_cast<ar_semaphore_t *>(object));
+                ar_semaphore_put_internal(reinterpret_cast<ar_semaphore_t *>(object));
                 break;
             case kArDeferredSemaphoreGet:
-                ar_semaphore_get(reinterpret_cast<ar_semaphore_t *>(object), kArNoTimeout);
+                ar_semaphore_get_internal(reinterpret_cast<ar_semaphore_t *>(object), kArNoTimeout);
                 break;
             case kArDeferredMutexPut:
                 ar_mutex_put(reinterpret_cast<ar_mutex_t *>(object));
@@ -452,7 +456,9 @@ void ar_kernel_run_deferred_actions()
                 ar_queue_send(reinterpret_cast<ar_queue_t *>(object), queue.m_objects[i + 1], kArNoTimeout);
                 break;
             case kArDeferredTimerStart:
-                ar_timer_start(reinterpret_cast<ar_timer_t *>(object));
+                assert(i + 1 < queue.m_count);
+                // Argument is the timer's wakeup time, determined at the time of the original start call.
+                ar_timer_internal_start(reinterpret_cast<ar_timer_t *>(object), reinterpret_cast<uint32_t>(queue.m_objects[i + 1]));
                 break;
             case kArDeferredTimerStop:
                 ar_timer_stop(reinterpret_cast<ar_timer_t *>(object));
@@ -460,8 +466,15 @@ void ar_kernel_run_deferred_actions()
         }
     }
 
+    if (queue.m_count != queueCount)
+    {
+        _halt();
+    }
+
     // Clear the queue.
     g_ar.deferredActions.m_count = 0;
+
+    g_ar.isExecutingDeferred = false;
 }
 
 //! @brief Function to make it clear what happened.
@@ -695,6 +708,8 @@ void _ar_list::add(ar_list_node_t * item)
             node = node->m_next;
         } while (node != m_head);
     }
+
+    check();
 }
 
 //! If the specified item is not on the list, nothing happens. In fact, the list may be empty,
@@ -738,6 +753,67 @@ void _ar_list::remove(ar_list_node_t * item)
 
         node = node->m_next;
     } while (node != m_head);
+
+    check();
+}
+
+void _ar_list::check()
+{
+    const uint32_t kNumNodes = 20;
+    ar_list_node_t * nodes[kNumNodes] = {0};
+    uint32_t count = 0;
+    uint32_t i;
+
+    // Handle empty list.
+    if (isEmpty())
+    {
+        return;
+    }
+
+    // Build array of all nodes in the list.
+    ar_list_node_t * node = m_head;
+    bool loop = true;
+    while (loop)
+    {
+        // Save this node in the list.
+        nodes[count] = node;
+        ++count;
+        if (count == kNumNodes - 1)
+        {
+            // More nodes than we have room for!
+            _halt();
+        }
+
+        node = node->m_next;
+
+        // Compare the next ptr against every node we've seen so far. If we find
+        // a match, exit the loop.
+        for (i = 0; i < count; ++i)
+        {
+            if (node == nodes[i])
+            {
+                loop = false;
+                break;
+            }
+        }
+    }
+
+    // Scan the nodes array and verify all links.
+    for (i = 0; i < count; ++i)
+    {
+        uint32_t prev = (i == 0) ? (count - 1) : (i  - 1);
+        uint32_t next = (i == count - 1) ? 0 : (i + 1);
+
+        node = nodes[i];
+        if (node->m_next != nodes[next])
+        {
+            _halt();
+        }
+        if (node->m_prev != nodes[prev])
+        {
+            _halt();
+        }
+    }
 }
 
 ar_status_t ar_post_deferred_action(ar_deferred_action_type_t action, void * object)
@@ -752,6 +828,8 @@ ar_status_t ar_post_deferred_action(ar_deferred_action_type_t action, void * obj
 
     g_ar.deferredActions.m_actions[index] = action;
     g_ar.deferredActions.m_objects[index] = object;
+
+    ar_kernel_enter_scheduler();
 
     return kArSuccess;
 }
@@ -770,6 +848,8 @@ ar_status_t ar_post_deferred_action2(ar_deferred_action_type_t action, void * ob
     g_ar.deferredActions.m_objects[index] = object;
     g_ar.deferredActions.m_actions[index+1] = kArDeferredActionValue;
     g_ar.deferredActions.m_objects[index+1] = arg;
+
+    ar_kernel_enter_scheduler();
 
     return kArSuccess;
 }

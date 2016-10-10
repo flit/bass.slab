@@ -87,9 +87,11 @@ typedef struct _ar_kernel {
     ar_list_t sleepingList;      //!< List of sleeping threads.
     ar_list_t activeTimers;       //!< List of running timers
     ar_deferred_action_queue_t deferredActions; //!< Actions deferred from interrupt context.
-    bool isRunning;                 //!< True if the kernel has been started.
-    bool needsReschedule;           //!< True if we need to reschedule once the kernel is unlocked.
     uint16_t lockCount;             //!< Whether the kernel is locked.
+    uint32_t isRunning:1;                 //!< True if the kernel has been started.
+    uint32_t needsReschedule:1;           //!< True if we need to reschedule once the kernel is unlocked.
+    uint32_t isExecutingDeferred:1;       //!< True if deferred actions are being performed.
+    uint32_t _reservedFlags:29;
     volatile uint32_t tickCount;    //!< Current tick count.
     uint32_t nextWakeup;            //!< Time of the next wakeup event.
     volatile unsigned systemLoad;   //!< Percent of system load from 0-100. The volatile is necessary so that the IAR optimizer doesn't remove the entire load calculation loop of the idle_entry() function.
@@ -141,8 +143,17 @@ ar_status_t ar_post_deferred_action(ar_deferred_action_type_t action, void * obj
 ar_status_t ar_post_deferred_action2(ar_deferred_action_type_t action, void * object, void * arg);
 //@}
 
+//! @name Internal routines
+//@{
+ar_status_t ar_semaphore_get_internal(ar_semaphore_t * sem, uint32_t timeout);
+ar_status_t ar_semaphore_put_internal(ar_semaphore_t * sem);
+//@}
+
+//! @name Thread entry point wrapper
+//@{
 //! @brief Thread entry point.
 void ar_thread_wrapper(ar_thread_t * thread, void * param);
+//@}
 
 //! @name List sorting predicates
 //@{

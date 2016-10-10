@@ -83,6 +83,25 @@ ar_status_t ar_timer_delete(ar_timer_t * timer)
     return kArSuccess;
 }
 
+//! @brief Handles starting or restarting a timer.
+ar_status_t ar_timer_internal_start(ar_timer_t * timer, uint32_t wakeupTime)
+{
+    KernelLock guard;
+
+    assert(timer->m_runLoop);
+
+    // Handle a timer that is already active.
+    if (timer->m_isActive)
+    {
+        timer->m_runLoop->m_timers.remove(timer);
+    }
+
+    timer->m_wakeupTime = wakeupTime;
+    timer->m_isActive = true;
+
+    return kArSuccess;
+}
+
 // See ar_kernel.h for documentation of this function.
 ar_status_t ar_timer_start(ar_timer_t * timer)
 {
@@ -94,27 +113,15 @@ ar_status_t ar_timer_start(ar_timer_t * timer)
     // The callback should have been verified by the create function.
     assert(timer->m_callback);
 
-    // Handle locked kernel in irq state by deferring the operation.
-    if (ar_port_get_irq_state() && g_ar.lockCount)
+    uint32_t wakeupTime = g_ar.tickCount + timer->m_delay;
+
+    // Handle irq state by deferring the operation.
+    if (ar_port_get_irq_state() && !g_ar.isExecutingDeferred)
     {
-        return ar_post_deferred_action(kArDeferredTimerStart, timer);
+        return ar_post_deferred_action2(kArDeferredTimerStart, timer, reinterpret_cast<void *>(wakeupTime));
     }
 
-    {
-        KernelLock guard;
-
-        // Handle a timer that is already active.
-        if (timer->m_isActive)
-        {
-            g_ar.activeTimers.remove(timer);
-        }
-
-        timer->m_wakeupTime = g_ar.tickCount + timer->m_delay;
-        timer->m_isActive = true;
-        g_ar.activeTimers.add(timer);
-    }
-
-    return kArSuccess;
+    return ar_timer_internal_start(timer, wakeupTime);
 }
 
 // See ar_kernel.h for documentation of this function.
@@ -129,8 +136,8 @@ ar_status_t ar_timer_stop(ar_timer_t * timer)
         return kArTimerNotRunningError;
     }
 
-    // Handle locked kernel in irq state by deferring the operation.
-    if (ar_port_get_irq_state() && g_ar.lockCount)
+    // Handle irq state by deferring the operation.
+    if (ar_port_get_irq_state() && !g_ar.isExecutingDeferred)
     {
         return ar_post_deferred_action(kArDeferredTimerStop, timer);
     }

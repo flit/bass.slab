@@ -95,8 +95,8 @@ ar_status_t ar_mutex_get(ar_mutex_t * mutex, uint32_t timeout)
         return kArInvalidParameterError;
     }
 
-    // Handle locked kernel in irq state by deferring the get.
-    if (ar_port_get_irq_state() && g_ar.lockCount)
+    // Handle irq state by deferring the get.
+    if (ar_port_get_irq_state() && !g_ar.isExecutingDeferred)
     {
         return ar_post_deferred_action(kArDeferredMutexGet, mutex);
     }
@@ -160,8 +160,8 @@ ar_status_t ar_mutex_put(ar_mutex_t * mutex)
         return kArInvalidParameterError;
     }
 
-    // Handle locked kernel in irq state by deferring the put.
-    if (ar_port_get_irq_state() && g_ar.lockCount)
+    // Handle irq state by deferring the put.
+    if (ar_port_get_irq_state() && !g_ar.isExecutingDeferred)
     {
         return ar_post_deferred_action(kArDeferredMutexPut, mutex);
     }

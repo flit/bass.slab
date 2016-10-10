@@ -135,8 +135,8 @@ ar_status_t ar_channel_send_receive(ar_channel_t * channel, bool isSending, ar_l
             return kArNotFromInterruptError;
         }
 
-        // Handle locked kernel in irq state by deferring the operation.
-        if (g_ar.lockCount)
+        // Handle irq state by deferring the operation.
+        if (!g_ar.isExecutingDeferred)
         {
             return ar_post_deferred_action2(kArDeferredChannelSend, channel, value);
         }
