@@ -131,10 +131,7 @@ ar_status_t ar_semaphore_get(ar_semaphore_t * sem, uint32_t timeout)
         }
 
         // Handle irq state by deferring the get.
-//         if (!g_ar.isExecutingDeferred)
-//         {
-            return ar_post_deferred_action(kArDeferredSemaphoreGet, sem);
-//         }
+        return ar_post_deferred_action(kArDeferredSemaphoreGet, sem);
     }
 
     return ar_semaphore_get_internal(sem, timeout);
@@ -167,7 +164,7 @@ ar_status_t ar_semaphore_put(ar_semaphore_t * sem)
     }
 
     // Handle irq state by deferring the put.
-    if (ar_port_get_irq_state())// && !g_ar.isExecutingDeferred)
+    if (ar_port_get_irq_state())
     {
         return ar_post_deferred_action(kArDeferredSemaphorePut, sem);
     }
