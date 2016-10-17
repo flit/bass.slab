@@ -691,7 +691,9 @@ void _ar_list::add(ar_list_node_t * item)
         } while (node != m_head);
     }
 
+#if AR_ENABLE_LIST_CHECKS
     check();
+#endif // AR_ENABLE_LIST_CHECKS
 }
 
 //! If the specified item is not on the list, nothing happens. In fact, the list may be empty,
@@ -736,9 +738,12 @@ void _ar_list::remove(ar_list_node_t * item)
         node = node->m_next;
     } while (node != m_head);
 
+#if AR_ENABLE_LIST_CHECKS
     check();
+#endif // AR_ENABLE_LIST_CHECKS
 }
 
+#if AR_ENABLE_LIST_CHECKS
 void _ar_list::check()
 {
     const uint32_t kNumNodes = 20;
@@ -797,6 +802,7 @@ void _ar_list::check()
         }
     }
 }
+#endif // AR_ENABLE_LIST_CHECKS
 
 int32_t _ar_deferred_action_queue::insert(int32_t entryCount)
 {

@@ -205,7 +205,6 @@ ar_status_t ar_mutex_put_internal(ar_mutex_t * mutex)
     return result;
 }
 
-
 // See ar_kernel.h for documentation of this function.
 ar_status_t ar_mutex_put(ar_mutex_t * mutex)
 {
