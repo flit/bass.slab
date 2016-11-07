@@ -29,8 +29,16 @@
 
 #include "display.h"
 #include "board.h"
+#include "font_5x7.h"
 #include "fsl_clock.h"
 #include "fsl_gpio.h"
+#include "fsl_tpm.h"
+
+//------------------------------------------------------------------------------
+// Variables
+//------------------------------------------------------------------------------
+
+DisplayController * DisplayController::s_instance = NULL;
 
 //------------------------------------------------------------------------------
 // Code
@@ -38,16 +46,19 @@
 
 DisplayController::DisplayController()
 {
+    memset(m_buffer, 0, sizeof(m_buffer));
+    s_instance = this;
 }
 
 void DisplayController::init()
 {
     // Create semaphore.
     m_transferDoneSem.init("txdone", 0);
+    m_nextRowSem.init("nextrow", 0);
 
     // Init SPI.
     dspi_master_config_t masterConfig;
-    masterConfig.ctarConfig.baudRate = 1000000; // 1 MHz
+    masterConfig.ctarConfig.baudRate = 4000000; // 4 MHz
     masterConfig.ctarConfig.bitsPerFrame = 16;
     masterConfig.whichPcs = kDSPI_Pcs1;
     DSPI_MasterGetDefaultConfig(&masterConfig);
@@ -55,74 +66,160 @@ void DisplayController::init()
 
     DSPI_MasterTransferCreateHandle(SPI0, &m_spiHandle, dspi_master_transfer_callback, this);
 
-    // Start thread.
-    m_thread.init("display", this, &DisplayController::display_thread, 110, kArSuspendThread);
+    // Init timer.
+    CLOCK_SetTpmClock(0x3); // MCGIRCLK = 1MHz
+    tpm_config_t tpm;
+    TPM_GetDefaultConfig(&tpm);
+    TPM_Init(TPM1, &tpm);
+    // @ 60 Hz = 16.6 ms/frame = 2.4 ms/row, @ 120 Hz = 1.2 ms/row
+    TPM1->MOD = 1200;
+    TPM_ClearStatusFlags(TPM1, kTPM_TimeOverflowFlag);
+    TPM_EnableInterrupts(TPM1, kTPM_TimeOverflowInterruptEnable);
+    NVIC_EnableIRQ(TPM1_IRQn);
 }
 
 void DisplayController::start()
 {
-    DSPI_Enable(SPI0, true);
+    memset(m_buffer, 0, sizeof(m_buffer));
+    m_buffer[0][0] = 0x0202;
+    m_buffer[0][1] = 0x0404;
 
-    m_thread.resume();
+    m_activeBuffer = 0;
+    m_flipBuffers = false;
+    m_row = 0;
+    set_output_enable(false);
+    set_row_enable(false);
+    select_row(m_row);
+
+    DSPI_Enable(SPI0, true);
+    DSPI_StartTransfer(SPI0);
+
+    TPM_StartTimer(TPM1, kTPM_SystemClock);
+
+    // Send first row.
+    transfer_row();
 }
 
-void DisplayController::display_thread()
+//
+// 7 rows, 16 bits
+//
+//   Col   D 1 2 3 4 5
+//   Row
+//     1     X X X X X
+//     2     X X X X X
+//     3     X X X X X
+//     4     X X X X X
+//     5     X X X X X
+//     6     X X X X X
+//     7   X X X X X X
+//
+// Bit:  7  6  5  4  3  2  1  0  7  6  5  4  3  2  1  0
+// Col:  -  DA 5A 4A 3A 2A 1A -  -  DB 5B 4B 3B 2B 1B -
+//
+// Row select:
+// 3'b000 : Row 7
+// 3'b001 : Row 6
+// 3'b010 : Row 5
+// 3'b011 : Row 4
+// 3'b100 : Row 3
+// 3'b101 : Row 2
+// 3'b110 : Row 1
+//
+void DisplayController::blit_char(uint32_t charIndex, const uint8_t *data)
 {
-    uint16_t counter = 0;
-    uint32_t row = 6;
-    uint32_t n;
+    uint16_t localBuffer[kRowCount];
+    uint32_t bitOffset = (charIndex == 0) ? 8 : 0;
+    uint32_t i;
 
-    set_output_enable(false);
-
-    while (1)
+    for (i = 7; i > 0; --i)
     {
-        DSPI_StartTransfer(SPI0);
+        uint16_t row = m_buffer[m_activeBuffer][i - 1];
 
-        // Get data for this row.
-        uint8_t data[2];
-        data[0] = counter & 0xff;
-        data[1] = (counter >> 8) & 0xff;
-        ++counter;
+        uint32_t bits = __RBIT((uint32_t)*data++) >> 23;
 
-        // Start transfer.
-        dspi_transfer_t transfer;
-        transfer.txData = data;
-        transfer.rxData = NULL;
-        transfer.dataSize = 2;
-        transfer.configFlags = kDSPI_MasterCtar0 | kDSPI_MasterPcs1;
+        row &= ~(0xff << bitOffset);
+        row |= (bits << bitOffset);
 
-        DSPI_MasterTransferNonBlocking(SPI0, &m_spiHandle, &transfer);
-
-        // Wait until transfer completes.
-        m_transferDoneSem.get();
-
-        set_row_enable(false);
-
-        // Latch new row data.
-        set_latch(true);
-//         Ar::Thread::sleep(1);
-        for (n = 0; n < 10000; ++n)
-        {
-        }
-        set_latch(false);
-
-        // Select new row.
-        if (row != 0)
-        {
-            --row;
-        }
-        else
-        {
-            row = 6;
-        }
-        select_row(row);
-
-        set_row_enable(true);
-
-        DSPI_StopTransfer(SPI0);
-
-        Ar::Thread::sleep(10);
+        localBuffer[i - 1] = row;
     }
+
+    // Update the next buffer and request buffer flip.
+    uint32_t nextBuffer = (m_activeBuffer == 0) ? 1 : 0;
+    memcpy(m_buffer[nextBuffer], localBuffer, sizeof(localBuffer));
+    m_flipBuffers = true;
+}
+
+void DisplayController::set_char(uint32_t charIndex, char c)
+{
+    const uint8_t * glyphData;
+    uint32_t i = 0;
+    for (; i < g_font_5x7.count; ++i)
+    {
+        if (g_font_5x7.index[i] == c)
+        {
+            glyphData = &g_font_5x7.glyphs[i * FONT5x7_HEIGHT_IN_BYTES];
+            blit_char(charIndex, glyphData);
+            return;
+        }
+    }
+}
+
+void DisplayController::transfer_row()
+{
+    // Start transfer.
+    dspi_transfer_t transfer;
+    transfer.txData = reinterpret_cast<uint8_t *>(&(m_buffer[m_activeBuffer][m_row]));
+    transfer.rxData = NULL;
+    transfer.dataSize = 2;
+    transfer.configFlags = kDSPI_MasterCtar0 | kDSPI_MasterPcs1;
+
+    DSPI_MasterTransferNonBlocking(SPI0, &m_spiHandle, &transfer);
+}
+
+void DisplayController::latch_and_advance()
+{
+    // Turn off output for previous row.
+    set_row_enable(false);
+
+    // Latch row data that was just sent.
+    set_latch(true);
+    for (int n = 0; n < 15; ++n) // 15 = ~75ns @ 180MHz core
+    {
+    }
+    set_latch(false);
+
+    // Select the row that was just sent.
+    select_row(m_row);
+
+    // Turn on new row output.
+    set_row_enable(true);
+
+    // Advance row that will be sent next.
+    ++m_row;
+    if (m_row >= kRowCount)
+    {
+        m_row = 0;
+
+        // Swap bitmap buffers at end of frame update if requested.
+        if (m_flipBuffers)
+        {
+            uint32_t nextBuffer = (m_activeBuffer == 0) ? 1 : 0;
+//             memcpy(m_buffer[m_activeBuffer], m_buffer[nextBuffer], sizeof(localBuffer));
+            m_activeBuffer = nextBuffer;
+            m_flipBuffers = false;
+        }
+    }
+}
+
+void DisplayController::timer_handler()
+{
+    latch_and_advance();
+    transfer_row();
+}
+
+void DisplayController::spi_handler()
+{
+//     latch_and_advance();
 }
 
 void DisplayController::set_latch(bool enable)
@@ -142,18 +239,12 @@ void DisplayController::set_row_enable(bool enable)
 
 void DisplayController::select_row(uint32_t row)
 {
-    // Disable row output while we change the selected row.
-//     set_row_enable(false);
-
     // Clear address bits to 0.
     GPIO_ClearPinsOutput(PIN_ROW_A0_GPIO, PIN_ROW_A0 | PIN_ROW_A1 | PIN_ROW_A2);
 
     // Set selected address bits to 1.
     uint32_t mask = (row << PIN_ROW_A0_BIT) & (PIN_ROW_A0 | PIN_ROW_A1 | PIN_ROW_A2);
     GPIO_SetPinsOutput(PIN_ROW_A0_GPIO, mask);
-
-    // Re-enable row output.
-//     set_row_enable(true);
 }
 
 void DisplayController::dspi_master_transfer_callback(SPI_Type *base,
@@ -161,8 +252,15 @@ void DisplayController::dspi_master_transfer_callback(SPI_Type *base,
                                                 status_t status,
                                                 void *userData)
 {
-    DisplayController * _this = reinterpret_cast<DisplayController *>(userData);
-    _this->m_transferDoneSem.put();
+//     DisplayController * _this = reinterpret_cast<DisplayController *>(userData);
+//     _this->m_transferDoneSem.put();
+//     _this->spi_handler();
+}
+
+extern "C" void TPM1_IRQHandler(void)
+{
+    DisplayController::get().timer_handler();
+    TPM_ClearStatusFlags(TPM1, kTPM_TimeOverflowFlag);
 }
 
 //------------------------------------------------------------------------------

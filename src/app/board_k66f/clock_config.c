@@ -139,9 +139,9 @@ const clock_config_t g_defaultClockConfigHsrun = {
     .mcgConfig =
         {
             .mcgMode = kMCG_ModePEE,                   /* Work in PEE mode. */
-            .irclkEnableMode = kMCG_IrclkEnableInStop, /* MCGIRCLK enable. */
-            .ircs = kMCG_IrcSlow,                      /* Select IRC32k.*/
-            .fcrdiv = 0U,                              /* FCRDIV is 0. */
+            .irclkEnableMode = kMCG_IrclkEnable | kMCG_IrclkEnableInStop, /* MCGIRCLK enable. */
+            .ircs = kMCG_IrcFast, // 4MHz //kMCG_IrcSlow,                      /* Select IRC32k.*/
+            .fcrdiv = 2U, // div=4                              /* FCRDIV is 0. */
 
             .frdiv = 4U,
             .drs = kMCG_DrsLow,         /* Low frequency range. */

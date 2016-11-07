@@ -171,6 +171,16 @@
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/display.h</locationURI>
 		</link>
 		<link>
+			<name>app/font_5x7.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/font_5x7.c</locationURI>
+		</link>
+		<link>
+			<name>app/font_5x7.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/font_5x7.h</locationURI>
+		</link>
+		<link>
 			<name>app/main.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/main.cpp</locationURI>
@@ -489,6 +499,16 @@
 			<name>ksdk/fsl_specification.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/src/ksdk/fsl_specification.h</locationURI>
+		</link>
+		<link>
+			<name>ksdk/fsl_tpm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/ksdk/fsl_tpm.c</locationURI>
+		</link>
+		<link>
+			<name>ksdk/fsl_tpm.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/ksdk/fsl_tpm.h</locationURI>
 		</link>
 		<link>
 			<name>ksdk/fsl_uart.c</name>

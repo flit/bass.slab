@@ -262,6 +262,10 @@ void pots_thread(void * arg)
             lastTune = tuneValue;
         	lastValue1 = value1;
         	lastValue2 = value2;
+
+        	g_display.set_char(0, '0' + (char)(value1 * 10 / 4096));
+        	g_display.set_char(1, '0' + (char)(value2 * 10 / 4096));
+
 //         	printf("tune = %d; pot1 = %d; pot2 = %d\r\n", tuneValue, value1, value2);
         }
 
@@ -471,7 +475,7 @@ void init_thread(void * arg)
     init_i2c1();
     init_audio_out();
 //     init_fs();
-//     g_display.init();
+    g_display.init();
 
     test_prox();
 
@@ -482,11 +486,11 @@ void init_thread(void * arg)
     PinIrqManager::get().connect(PIN_ENCA_PORT, PIN_ENCA_BIT, rotary_handler, NULL);
     PinIrqManager::get().connect(PIN_ENCB_PORT, PIN_ENCB_BIT, rotary_handler, NULL);
 
-//     g_myTimer.start();
+    g_myTimer.start();
     g_audioOut.start();
-//     g_accelThread.resume();
+    g_accelThread.resume();
     g_potsThread.resume();
-//     g_display.start();
+    g_display.start();
 
 //     delete g_initThread;
 }
