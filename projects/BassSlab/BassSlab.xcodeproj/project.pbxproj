@@ -1,0 +1,403 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0211C3231DD5481100E85D5F /* synth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0211C3221DD5481100E85D5F /* synth.cpp */; };
+		0211C3261DD7D83E00E85D5F /* OscilloscopeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0211C3251DD7D83E00E85D5F /* OscilloscopeView.m */; };
+		0211C32D1DD8E89500E85D5F /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C3271DD8E89500E85D5F /* AVFoundation.framework */; };
+		0211C32E1DD8E89500E85D5F /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C3281DD8E89500E85D5F /* AVKit.framework */; };
+		0211C32F1DD8E89500E85D5F /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C3291DD8E89500E85D5F /* CoreAudio.framework */; };
+		0211C3301DD8E89500E85D5F /* CoreAudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C32A1DD8E89500E85D5F /* CoreAudioKit.framework */; };
+		0211C3311DD8E89500E85D5F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C32B1DD8E89500E85D5F /* QuartzCore.framework */; };
+		022743021DCE8E0C003ADE1A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 022743011DCE8E0C003ADE1A /* AppDelegate.mm */; };
+		022743051DCE8E0C003ADE1A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 022743041DCE8E0C003ADE1A /* main.m */; };
+		022743071DCE8E0C003ADE1A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 022743061DCE8E0C003ADE1A /* Assets.xcassets */; };
+		0227430A1DCE8E0C003ADE1A /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 022743081DCE8E0C003ADE1A /* MainMenu.xib */; };
+		022743461DCE8F1C003ADE1A /* asr_envelope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0227432E1DCE8F1C003ADE1A /* asr_envelope.cpp */; };
+		022743471DCE8F1C003ADE1A /* audio_buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743301DCE8F1C003ADE1A /* audio_buffer.cpp */; };
+		022743481DCE8F1C003ADE1A /* audio_filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743321DCE8F1C003ADE1A /* audio_filter.cpp */; };
+		022743491DCE8F1C003ADE1A /* audio_mixer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743341DCE8F1C003ADE1A /* audio_mixer.cpp */; };
+		0227434A1DCE8F1C003ADE1A /* audio_ramp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743361DCE8F1C003ADE1A /* audio_ramp.cpp */; };
+		0227434B1DCE8F1C003ADE1A /* delay_line.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743381DCE8F1C003ADE1A /* delay_line.cpp */; };
+		0227434C1DCE8F1C003ADE1A /* rbj_filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0227433A1DCE8F1C003ADE1A /* rbj_filter.cpp */; };
+		0227434F1DCE8F1C003ADE1A /* sequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743401DCE8F1C003ADE1A /* sequencer.cpp */; };
+		022743501DCE8F1C003ADE1A /* sine_osc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743421DCE8F1C003ADE1A /* sine_osc.cpp */; };
+		022743541DCFE111003ADE1A /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 022743531DCFE111003ADE1A /* AudioToolbox.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0211C3201DD5477B00E85D5F /* arm_math.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arm_math.h; sourceTree = "<group>"; };
+		0211C3211DD547BF00E85D5F /* synth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = synth.h; sourceTree = "<group>"; };
+		0211C3221DD5481100E85D5F /* synth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = synth.cpp; sourceTree = "<group>"; };
+		0211C3241DD7D83E00E85D5F /* OscilloscopeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscilloscopeView.h; sourceTree = "<group>"; };
+		0211C3251DD7D83E00E85D5F /* OscilloscopeView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OscilloscopeView.m; sourceTree = "<group>"; };
+		0211C3271DD8E89500E85D5F /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		0211C3281DD8E89500E85D5F /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
+		0211C3291DD8E89500E85D5F /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		0211C32A1DD8E89500E85D5F /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		0211C32B1DD8E89500E85D5F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		022742FD1DCE8E0C003ADE1A /* BassSlab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BassSlab.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		022743001DCE8E0C003ADE1A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		022743011DCE8E0C003ADE1A /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		022743041DCE8E0C003ADE1A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		022743061DCE8E0C003ADE1A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		022743091DCE8E0C003ADE1A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		0227430B1DCE8E0C003ADE1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0227432E1DCE8F1C003ADE1A /* asr_envelope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = asr_envelope.cpp; path = ../../src/app/asr_envelope.cpp; sourceTree = "<group>"; };
+		0227432F1DCE8F1C003ADE1A /* asr_envelope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = asr_envelope.h; path = ../../src/app/asr_envelope.h; sourceTree = "<group>"; };
+		022743301DCE8F1C003ADE1A /* audio_buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_buffer.cpp; path = ../../src/app/audio_buffer.cpp; sourceTree = "<group>"; };
+		022743311DCE8F1C003ADE1A /* audio_buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = audio_buffer.h; path = ../../src/app/audio_buffer.h; sourceTree = "<group>"; };
+		022743321DCE8F1C003ADE1A /* audio_filter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_filter.cpp; path = ../../src/app/audio_filter.cpp; sourceTree = "<group>"; };
+		022743331DCE8F1C003ADE1A /* audio_filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = audio_filter.h; path = ../../src/app/audio_filter.h; sourceTree = "<group>"; };
+		022743341DCE8F1C003ADE1A /* audio_mixer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_mixer.cpp; path = ../../src/app/audio_mixer.cpp; sourceTree = "<group>"; };
+		022743351DCE8F1C003ADE1A /* audio_mixer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = audio_mixer.h; path = ../../src/app/audio_mixer.h; sourceTree = "<group>"; };
+		022743361DCE8F1C003ADE1A /* audio_ramp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_ramp.cpp; path = ../../src/app/audio_ramp.cpp; sourceTree = "<group>"; };
+		022743371DCE8F1C003ADE1A /* audio_ramp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = audio_ramp.h; path = ../../src/app/audio_ramp.h; sourceTree = "<group>"; };
+		022743381DCE8F1C003ADE1A /* delay_line.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = delay_line.cpp; path = ../../src/app/delay_line.cpp; sourceTree = "<group>"; };
+		022743391DCE8F1C003ADE1A /* delay_line.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = delay_line.h; path = ../../src/app/delay_line.h; sourceTree = "<group>"; };
+		0227433A1DCE8F1C003ADE1A /* rbj_filter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rbj_filter.cpp; path = ../../src/app/rbj_filter.cpp; sourceTree = "<group>"; };
+		0227433B1DCE8F1C003ADE1A /* rbj_filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rbj_filter.h; path = ../../src/app/rbj_filter.h; sourceTree = "<group>"; };
+		022743401DCE8F1C003ADE1A /* sequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sequencer.cpp; path = ../../src/app/sequencer.cpp; sourceTree = "<group>"; };
+		022743411DCE8F1C003ADE1A /* sequencer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sequencer.h; path = ../../src/app/sequencer.h; sourceTree = "<group>"; };
+		022743421DCE8F1C003ADE1A /* sine_osc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sine_osc.cpp; path = ../../src/app/sine_osc.cpp; sourceTree = "<group>"; };
+		022743431DCE8F1C003ADE1A /* sine_osc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sine_osc.h; path = ../../src/app/sine_osc.h; sourceTree = "<group>"; };
+		022743531DCFE111003ADE1A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		022742FA1DCE8E0C003ADE1A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0211C32D1DD8E89500E85D5F /* AVFoundation.framework in Frameworks */,
+				0211C32E1DD8E89500E85D5F /* AVKit.framework in Frameworks */,
+				0211C32F1DD8E89500E85D5F /* CoreAudio.framework in Frameworks */,
+				0211C3301DD8E89500E85D5F /* CoreAudioKit.framework in Frameworks */,
+				0211C3311DD8E89500E85D5F /* QuartzCore.framework in Frameworks */,
+				022743541DCFE111003ADE1A /* AudioToolbox.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		022742F41DCE8E0C003ADE1A = {
+			isa = PBXGroup;
+			children = (
+				022742FF1DCE8E0C003ADE1A /* BassSlab */,
+				0227432D1DCE8EE5003ADE1A /* src */,
+				022742FE1DCE8E0C003ADE1A /* Products */,
+				022743521DCFE111003ADE1A /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		022742FE1DCE8E0C003ADE1A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				022742FD1DCE8E0C003ADE1A /* BassSlab.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		022742FF1DCE8E0C003ADE1A /* BassSlab */ = {
+			isa = PBXGroup;
+			children = (
+				022743001DCE8E0C003ADE1A /* AppDelegate.h */,
+				022743011DCE8E0C003ADE1A /* AppDelegate.mm */,
+				0211C3201DD5477B00E85D5F /* arm_math.h */,
+				022743061DCE8E0C003ADE1A /* Assets.xcassets */,
+				0227430B1DCE8E0C003ADE1A /* Info.plist */,
+				022743041DCE8E0C003ADE1A /* main.m */,
+				022743081DCE8E0C003ADE1A /* MainMenu.xib */,
+				0211C3211DD547BF00E85D5F /* synth.h */,
+				0211C3221DD5481100E85D5F /* synth.cpp */,
+				0211C3241DD7D83E00E85D5F /* OscilloscopeView.h */,
+				0211C3251DD7D83E00E85D5F /* OscilloscopeView.m */,
+			);
+			path = BassSlab;
+			sourceTree = "<group>";
+		};
+		0227432D1DCE8EE5003ADE1A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				0227432E1DCE8F1C003ADE1A /* asr_envelope.cpp */,
+				0227432F1DCE8F1C003ADE1A /* asr_envelope.h */,
+				022743301DCE8F1C003ADE1A /* audio_buffer.cpp */,
+				022743311DCE8F1C003ADE1A /* audio_buffer.h */,
+				022743321DCE8F1C003ADE1A /* audio_filter.cpp */,
+				022743331DCE8F1C003ADE1A /* audio_filter.h */,
+				022743341DCE8F1C003ADE1A /* audio_mixer.cpp */,
+				022743351DCE8F1C003ADE1A /* audio_mixer.h */,
+				022743361DCE8F1C003ADE1A /* audio_ramp.cpp */,
+				022743371DCE8F1C003ADE1A /* audio_ramp.h */,
+				022743381DCE8F1C003ADE1A /* delay_line.cpp */,
+				022743391DCE8F1C003ADE1A /* delay_line.h */,
+				0227433A1DCE8F1C003ADE1A /* rbj_filter.cpp */,
+				0227433B1DCE8F1C003ADE1A /* rbj_filter.h */,
+				022743401DCE8F1C003ADE1A /* sequencer.cpp */,
+				022743411DCE8F1C003ADE1A /* sequencer.h */,
+				022743421DCE8F1C003ADE1A /* sine_osc.cpp */,
+				022743431DCE8F1C003ADE1A /* sine_osc.h */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		022743521DCFE111003ADE1A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0211C3271DD8E89500E85D5F /* AVFoundation.framework */,
+				0211C3281DD8E89500E85D5F /* AVKit.framework */,
+				0211C3291DD8E89500E85D5F /* CoreAudio.framework */,
+				0211C32A1DD8E89500E85D5F /* CoreAudioKit.framework */,
+				0211C32B1DD8E89500E85D5F /* QuartzCore.framework */,
+				022743531DCFE111003ADE1A /* AudioToolbox.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		022742FC1DCE8E0C003ADE1A /* BassSlab */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 022743241DCE8E0C003ADE1A /* Build configuration list for PBXNativeTarget "BassSlab" */;
+			buildPhases = (
+				022742F91DCE8E0C003ADE1A /* Sources */,
+				022742FA1DCE8E0C003ADE1A /* Frameworks */,
+				022742FB1DCE8E0C003ADE1A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BassSlab;
+			productName = BassSlab;
+			productReference = 022742FD1DCE8E0C003ADE1A /* BassSlab.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		022742F51DCE8E0C003ADE1A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0810;
+				ORGANIZATIONNAME = "Immo Software";
+				TargetAttributes = {
+					022742FC1DCE8E0C003ADE1A = {
+						CreatedOnToolsVersion = 8.1;
+						DevelopmentTeam = 7V78BSKXHX;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 022742F81DCE8E0C003ADE1A /* Build configuration list for PBXProject "BassSlab" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 022742F41DCE8E0C003ADE1A;
+			productRefGroup = 022742FE1DCE8E0C003ADE1A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				022742FC1DCE8E0C003ADE1A /* BassSlab */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		022742FB1DCE8E0C003ADE1A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				022743071DCE8E0C003ADE1A /* Assets.xcassets in Resources */,
+				0227430A1DCE8E0C003ADE1A /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		022742F91DCE8E0C003ADE1A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				022743491DCE8F1C003ADE1A /* audio_mixer.cpp in Sources */,
+				022743471DCE8F1C003ADE1A /* audio_buffer.cpp in Sources */,
+				022743501DCE8F1C003ADE1A /* sine_osc.cpp in Sources */,
+				022743481DCE8F1C003ADE1A /* audio_filter.cpp in Sources */,
+				0211C3231DD5481100E85D5F /* synth.cpp in Sources */,
+				0227434C1DCE8F1C003ADE1A /* rbj_filter.cpp in Sources */,
+				0227434A1DCE8F1C003ADE1A /* audio_ramp.cpp in Sources */,
+				022743461DCE8F1C003ADE1A /* asr_envelope.cpp in Sources */,
+				0211C3261DD7D83E00E85D5F /* OscilloscopeView.m in Sources */,
+				0227434B1DCE8F1C003ADE1A /* delay_line.cpp in Sources */,
+				022743051DCE8E0C003ADE1A /* main.m in Sources */,
+				0227434F1DCE8F1C003ADE1A /* sequencer.cpp in Sources */,
+				022743021DCE8E0C003ADE1A /* AppDelegate.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		022743081DCE8E0C003ADE1A /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				022743091DCE8E0C003ADE1A /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		022743221DCE8E0C003ADE1A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		022743231DCE8E0C003ADE1A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		022743251DCE8E0C003ADE1A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 7V78BSKXHX;
+				INFOPLIST_FILE = BassSlab/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.immosw.BassSlab;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		022743261DCE8E0C003ADE1A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 7V78BSKXHX;
+				INFOPLIST_FILE = BassSlab/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.immosw.BassSlab;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		022742F81DCE8E0C003ADE1A /* Build configuration list for PBXProject "BassSlab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				022743221DCE8E0C003ADE1A /* Debug */,
+				022743231DCE8E0C003ADE1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		022743241DCE8E0C003ADE1A /* Build configuration list for PBXNativeTarget "BassSlab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				022743251DCE8E0C003ADE1A /* Debug */,
+				022743261DCE8E0C003ADE1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 022742F51DCE8E0C003ADE1A /* Project object */;
+}
