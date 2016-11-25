@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Audio ramp generator.
  */
@@ -64,6 +66,8 @@ protected:
     float m_gains[kMaxInputs];
     uint32_t m_inputCount;
 };
+
+} // namespace slab
 
 #endif // _AUDIO_MIXER_H_
 //------------------------------------------------------------------------------

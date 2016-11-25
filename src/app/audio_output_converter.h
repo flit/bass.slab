@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Output source to convert float buffers to the codec output format.
  */
@@ -45,18 +47,17 @@ public:
     AudioOutputConverter() : m_source(NULL) {}
     virtual ~AudioOutputConverter() {}
 
-//     void set_buffer(float * buffer, size_t bufferSize);
     void set_buffer(AudioBuffer & buffer) { m_buffer = buffer; }
     void set_source(AudioFilter * source) { m_source = source; }
 
     virtual void fill_buffer(uint32_t bufferIndex, AudioOutput::Buffer & buffer);
 
 protected:
-//     float * m_buffer;
-//     size_t m_bufferSize;
     AudioBuffer m_buffer;
     AudioFilter * m_source;
 };
+
+} // namespace slab
 
 #endif // _AUDIO_OUT_CONVERTER_H_
 //------------------------------------------------------------------------------

@@ -35,6 +35,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Rotary encoder decoder.
  */
@@ -49,6 +51,8 @@ private:
     static const int s_encoderStates[];
     uint8_t m_oldState;
 };
+
+} // namespace slab
 
 #endif // _ROTARY_DECODER_H_
 //------------------------------------------------------------------------------

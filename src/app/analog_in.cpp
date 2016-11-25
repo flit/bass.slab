@@ -30,6 +30,8 @@
 #include "analog_in.h"
 #include "board.h"
 
+using namespace slab;
+
 bool AnalogIn::s_adcInited[] = {0};
 
 Ar::TypedChannel<uint32_t> g_adc0Result("adc0");

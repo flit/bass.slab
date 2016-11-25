@@ -29,7 +29,12 @@
 
 #include "asr_envelope.h"
 #include "arm_math.h"
+
+#if __arm__
 #include "argon/argon.h"
+#endif
+
+using namespace slab;
 
 //------------------------------------------------------------------------------
 // Code
@@ -258,7 +263,9 @@ void ASREnvelope::process(float * samples, uint32_t count)
             }
             if (sustainCount > 1000)
             {
+#if __arm__
                 Ar::_halt();
+#endif
             }
             if (sustainCount > 0)
             {

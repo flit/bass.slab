@@ -56,6 +56,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+using namespace slab;
+
 //------------------------------------------------------------------------------
 // Definitions
 //------------------------------------------------------------------------------
@@ -122,6 +124,7 @@ AudioMixer g_mixer;
 RBJFilter g_filter;
 DelayLine g_delay;
 i2c_master_handle_t g_i2cHandle;
+i2c_master_handle_t g_i2c1Handle;
 fxos_handle_t g_fxos;
 
 SequenceInfo * g_firstSequence = 0;
@@ -193,9 +196,9 @@ void accel_thread(void * arg)
         status_t status = FXOS_ReadSensorData(&g_fxos, &data);
         if (status == kStatus_Success)
         {
-            printf("acc[x=%6d y=%6d z=%6d] mag[x=%6d y=%6d z=%6d]\r\n",
-                   data.accelX, data.accelY, data.accelZ,
-                   data.magX, data.magY, data.magZ);
+//             printf("acc[x=%6d y=%6d z=%6d] mag[x=%6d y=%6d z=%6d]\r\n",
+//                    data.accelX, data.accelY, data.accelZ,
+//                    data.magX, data.magY, data.magZ);
 
             // Get maximum accel in positive or negative.
 //             data.accelZ -= 16384; // subtract out gravity (device must be stationary).
@@ -232,7 +235,7 @@ void accel_thread(void * arg)
 
 //             float g = float(average) / 16384.0f;
             float feedback = average; // / 2.0f;
-            printf("feedback = %g\r\n", feedback);
+//             printf("feedback = %g\r\n", feedback);
             g_delay.set_feedback(feedback);
         }
 
@@ -317,7 +320,7 @@ void init_i2c1()
     i2c_master_config_t i2cConfig = {0};
     I2C_MasterGetDefaultConfig(&i2cConfig);
     I2C_MasterInit(I2C1, &i2cConfig, i2cSourceClock);
-//     I2C_MasterTransferCreateHandle(I2C0, &g_i2cHandle, NULL, NULL);
+    I2C_MasterTransferCreateHandle(I2C1, &g_i2c1Handle, NULL, NULL);
 }
 
 void audio_init_thread(void * arg)
@@ -366,7 +369,7 @@ void init_audio_synth()
     g_kickSeq.set_sample_rate(kSampleRate);
     g_kickSeq.set_tempo(100.0f);
 //     g_kickSeq.set_sequence("x---x---x---x-x-x---x---x---x---xx--x--x--xxx-x-");
-    g_kickSeq.set_sequence("x---"); //x-x----xx---");
+    g_kickSeq.set_sequence("x---------x---------"); //x-x----xx---");
     g_kickSeq.init();
 
     g_kickGen.set_sample_rate(kSampleRate);
@@ -379,16 +382,16 @@ void init_audio_synth()
 
     g_bassSeq.set_sample_rate(kSampleRate);
     g_bassSeq.set_tempo(100.0f);
-    g_bassSeq.set_sequence("--sp"); //"--s>>>p-----s>>>>>>p----");
+    g_bassSeq.set_sequence("--s>>>>p--------"); //"--s>>>p-----s>>>>>>p----");
     g_bassSeq.init();
 
     g_bassGen.set_sample_rate(kSampleRate);
     g_bassGen.set_sequence(&g_bassSeq);
-    g_bassGen.set_freq(40.0f);
+    g_bassGen.set_freq(80.0f);
     g_bassGen.enable_sustain(true);
     g_bassGen.init();
     g_bassGen.set_attack(0.3f);
-    g_bassGen.set_release(1.0f);
+    g_bassGen.set_release(3.0f);
 
 //     g_tickSeq.set_sample_rate(kSampleRate);
 //     g_tickSeq.set_tempo(100.0f);
@@ -412,7 +415,7 @@ void init_audio_synth()
     g_delay.set_sample_rate(kSampleRate);
     g_delay.set_maximum_delay_seconds(0.4f);
     g_delay.set_delay_samples(g_kickSeq.get_samples_per_beat());
-    g_delay.set_feedback(0.5f);
+    g_delay.set_feedback(0.7f);
     g_delay.set_wet_mix(0.5f);
     g_delay.set_dry_mix(0.8f);
     g_delay.set_input(&g_kickGen);
@@ -421,7 +424,7 @@ void init_audio_synth()
     g_mixer.set_buffer(mixBuf);
     g_mixer.set_input_count(2);
     g_mixer.set_input(0, &g_delay, 0.5f);
-    g_mixer.set_input(1, &g_bassGen, 0.5f);
+    g_mixer.set_input(1, &g_bassGen, 0.34f);
 //     g_mixer.set_input(2, &g_tickGen, 0.3f);
 }
 

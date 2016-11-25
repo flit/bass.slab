@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Display controller.
  */
@@ -82,6 +84,8 @@ protected:
                                                 status_t status,
                                                 void *userData);
 };
+
+} // namespace slab
 
 #endif // _DISPLAY_H_
 //------------------------------------------------------------------------------

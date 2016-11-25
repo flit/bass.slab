@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Audio ramp generator.
  */
@@ -91,6 +93,8 @@ protected:
     void recalculate_slope();
 
 };
+
+} // namespace slab
 
 #endif // _AUDIO_RAMP_H_
 //------------------------------------------------------------------------------

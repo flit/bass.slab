@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Audio output port.
  */
@@ -83,6 +85,8 @@ protected:
     static void sai_callback(I2S_Type *base, sai_edma_handle_t *handle, status_t status, void *userData);
 
 };
+
+} // namespace slab
 
 #endif // _AUDIO_OUT_H_
 //------------------------------------------------------------------------------

@@ -30,10 +30,13 @@
 #define _AUDIO_BUFFER_H_
 
 #include <stddef.h>
+#include <stdint.h>
 
 //------------------------------------------------------------------------------
 // Definitions
 //------------------------------------------------------------------------------
+
+namespace slab {
 
 /*!
  * @brief Represents a single channel audio buffer.
@@ -47,7 +50,7 @@ class AudioBuffer
 {
 public:
     AudioBuffer() : m_samples(NULL), m_count(0) {}
-    AudioBuffer(float * samples, size_t count) : m_samples(samples), m_count(count) {}
+    AudioBuffer(float * samples, uint32_t count) : m_samples(samples), m_count(count) {}
     AudioBuffer(const AudioBuffer & other) : m_samples(other.m_samples), m_count(other.m_count) {}
     AudioBuffer & operator = (const AudioBuffer & other)
     {
@@ -58,7 +61,7 @@ public:
 
     ~AudioBuffer() {}
 
-    void set(float * samples, size_t count)
+    void set(float * samples, uint32_t count)
     {
         m_samples = samples;
         m_count = count;
@@ -66,7 +69,7 @@ public:
 
     float * get_buffer() { return m_samples; }
     const float * get_buffer() const { return m_samples; }
-    size_t get_count() const { return m_count; }
+    uint32_t get_count() const { return m_count; }
 
     void clear() { set_scalar(0.0f); }
     void set_scalar(float value);
@@ -91,8 +94,10 @@ public:
 
 protected:
     float * m_samples;
-    size_t m_count;
+    uint32_t m_count;
 };
+
+} // namespace slab
 
 #endif // _AUDIO_BUFFER_H_
 //------------------------------------------------------------------------------

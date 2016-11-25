@@ -33,6 +33,8 @@
 #include <assert.h>
 #include <math.h>
 
+using namespace slab;
+
 /*	***************************************************************************
  *  Author: Michael Brodsky
  *

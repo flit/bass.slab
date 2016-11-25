@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Audio filter.
  */
@@ -65,7 +67,7 @@ protected:
 
 };
 
-
+} // namespace slab
 
 // SineGenerator singen;
 // Lowpass lpf;

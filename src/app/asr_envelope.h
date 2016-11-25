@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Attack-Release envelope generator.
  */
@@ -89,6 +91,8 @@ protected:
     uint32_t m_elapsedSamples;
     bool m_isTriggered;
 };
+
+} // namespace slab
 
 #endif // _AR_ENVELOPE_H_
 //------------------------------------------------------------------------------

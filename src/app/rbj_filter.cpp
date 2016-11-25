@@ -33,6 +33,8 @@
 #include <assert.h>
 #include <math.h>
 
+using namespace slab;
+
 const float LN2 = 0.6931471805599453f;
 
 //------------------------------------------------------------------------------

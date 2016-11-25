@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Audio event sequencer.
  *
@@ -121,6 +123,7 @@ protected:
     void append_event(Event * ev);
 };
 
+} // namespace slab
 
 #endif // _SEQUENCER_H_
 //------------------------------------------------------------------------------

@@ -38,6 +38,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Information about a sequence.
  */
@@ -75,6 +77,8 @@ protected:
     SequenceInfo * parse_file(FIL * fp);
 
 };
+
+} // namespace slab
 
 #endif // _SEQUENCE_READER_H_
 //------------------------------------------------------------------------------

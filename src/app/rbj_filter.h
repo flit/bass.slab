@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * This filter class wraps up and makes it easy to use filter from the
  * cookbook by Robert Bristow-Johnson. The single class CRBJFilter provides
@@ -120,6 +122,8 @@ protected:
     virtual void _process(float * samples, uint32_t count);
 
 };
+
+} // namespace slab
 
 #endif // _RBJ_FILTER_H_
 //------------------------------------------------------------------------------

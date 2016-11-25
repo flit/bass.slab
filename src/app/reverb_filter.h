@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  *
  */
@@ -51,6 +53,8 @@ protected:
     virtual void _process(float * samples, uint32_t count);
 
 };
+
+} // namespace slab
 
 #endif // _REVERB_FILTER_H_
 //------------------------------------------------------------------------------

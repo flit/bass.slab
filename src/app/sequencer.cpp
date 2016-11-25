@@ -32,6 +32,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+using namespace slab;
+
 //------------------------------------------------------------------------------
 // Code
 //------------------------------------------------------------------------------
@@ -55,7 +57,7 @@ void Sequencer::init()
 {
     m_samplesPerBeat = static_cast<uint32_t>(m_sampleRate * 60.0f / m_tempo);
 
-    m_sequenceLength = strlen(m_sequence);
+    m_sequenceLength = (uint32_t)strlen(m_sequence);
     m_sequenceTime = m_sequenceLength * m_samplesPerBeat;
 
     m_firstEvent = NULL;

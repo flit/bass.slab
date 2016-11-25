@@ -28,9 +28,10 @@
  */
 
 #include "audio_filter.h"
-#include "arm_math.h"
 #include <string.h>
 #include <assert.h>
+
+using namespace slab;
 
 //------------------------------------------------------------------------------
 // Code

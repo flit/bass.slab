@@ -37,6 +37,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Audio filter.
  */
@@ -70,6 +72,8 @@ protected:
     float m_previous;
     Sequencer * m_seq;
 };
+
+} // namespace slab
 
 #endif // _SQUARE_OSC_H_
 //------------------------------------------------------------------------------

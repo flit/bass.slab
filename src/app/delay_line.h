@@ -36,6 +36,8 @@
 // Definitions
 //------------------------------------------------------------------------------
 
+namespace slab {
+
 /*!
  * @brief Audio delay line.
  */
@@ -84,6 +86,8 @@ protected:
     virtual void _process(float * samples, uint32_t count);
 
 };
+
+} // namespace slab
 
 #endif // _DELAY_LINE_H_
 //------------------------------------------------------------------------------

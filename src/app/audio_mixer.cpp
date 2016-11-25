@@ -28,9 +28,10 @@
  */
 
 #include "audio_mixer.h"
-#include "arm_math.h"
 #include <string.h>
 #include <assert.h>
+
+using namespace slab;
 
 //------------------------------------------------------------------------------
 // Code
@@ -64,7 +65,7 @@ void AudioMixer::process(float * samples, uint32_t count)
     m_inputs[0]->process(samples, count);
 
     // Apply gain to first input.
-    arm_scale_f32(samples, m_gains[0], samples, count);
+    AudioBuffer(samples, count).multiply_scalar(m_gains[0]);
 
     // Other inputs go to a temp buffer first.
     assert(m_buffer.get_count() >= count);
