@@ -26,12 +26,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#if !defined(_SEQUENCE_READER_H_)
-#define _SEQUENCE_READER_H_
+#if !defined(_SEQUENCE_FILE_READER_H_)
+#define _SEQUENCE_FILE_READER_H_
 
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
+#include "sequence_reader.h"
+#include "argon/argon.h"
+#include "ff.h"
 
 //------------------------------------------------------------------------------
 // Definitions
@@ -39,48 +39,30 @@
 
 namespace slab {
 
-enum {
-    kSequenceChannelCount = 2
-};
-
-/*!
- * @brief Information about a sequence.
- */
-struct SequenceInfo
-{
-    int tempo;
-    const char * channels[kSequenceChannelCount];
-    SequenceInfo * next;
-
-    SequenceInfo()
-    :   tempo(0),
-        next(0)
-    {
-        memset(channels, 0, sizeof(channels));
-    }
-};
-
 /*!
  * @brief Reads sequences from an SD card.
  */
-class SequenceReader
+class SequenceFileReader : public SequenceReader
 {
 public:
 
-    SequenceReader();
-    ~SequenceReader() {}
+    SequenceFileReader();
+    ~SequenceFileReader() {}
 
     void init();
 
-    SequenceInfo * parse(const char * data);
+    uint32_t scan_dir(const char * path, SequenceInfo ** head);
 
 protected:
+    FATFS g_fs;
+
+    SequenceInfo * parse_file(FIL * fp);
 
 };
 
 } // namespace slab
 
-#endif // _SEQUENCE_READER_H_
+#endif // _SEQUENCE_FILE_READER_H_
 //------------------------------------------------------------------------------
 // EOF
 //------------------------------------------------------------------------------

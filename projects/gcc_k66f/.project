@@ -231,6 +231,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/src/app/rotary_decoder.h</locationURI>
 		</link>
 		<link>
+			<name>app/sequence_file_reader.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/sequence_file_reader.cpp</locationURI>
+		</link>
+		<link>
+			<name>app/sequence_file_reader.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/sequence_file_reader.h</locationURI>
+		</link>
+		<link>
 			<name>app/sequence_reader.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/sequence_reader.cpp</locationURI>

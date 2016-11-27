@@ -27,7 +27,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "sequence_reader.h"
+#include "sequence_file_reader.h"
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -40,88 +40,91 @@ using namespace slab;
 // Code
 //------------------------------------------------------------------------------
 
-SequenceReader::SequenceReader()
+SequenceFileReader::SequenceFileReader()
 {
 }
 
-void SequenceReader::init()
+void SequenceFileReader::init()
 {
+    f_mount(&g_fs, "", 0);
 }
 
-SequenceInfo * SequenceReader::parse(const char * data)
+uint32_t SequenceFileReader::scan_dir(const char * path, SequenceInfo ** head)
 {
-    SequenceInfo * info = new SequenceInfo;
+    uint32_t sequenceCount = 0;
+    FRESULT result;
+    DIR dir;
 
-    size_t n = strlen(data) + 1;
-    char * buf = (char *)malloc(n);
-    strncpy(buf, data, n);
-    bool alldone = false;
-    while (!alldone)
+    result = f_opendir(&dir, path);
+    if (result != FR_OK)
     {
-        // Handle comment line.
-        if (buf[0] == '#')
-        {
-            continue;
-        }
-
-        // Split into key and value.
-        char * key = buf;
-        char * value = buf;
-        char * tmpbuf;
-        bool done = false;
-        while (!done)
-        {
-            char c = *buf++;
-            switch (c)
-            {
-                case 0:
-                case '\r':
-                case '\n':
-                    tmpbuf = buf - 1;
-                    *tmpbuf = 0;
-                    done = true;
-                    if (c == 0)
-                    {
-                        alldone = true;
-                    }
-                    break;
-                case '=':
-                    tmpbuf = buf - 1;
-                    *tmpbuf = 0;
-                    value = buf;
-                    break;
-                default:
-                    break;
-            }
-        }
-        if (value == key)
-        {
-            printf("Invalid syntax\n");
-            continue;
-        }
-
-        // Scan for sequence nunber.
-        if (strcmp(key, "tempo") == 0)
-        {
-            int tempo = atoi(value);
-            info->tempo = tempo;
-        }
-        else
-        {
-            int sequenceNumber = atoi(key);
-            if (sequenceNumber >= 0 && sequenceNumber < kSequenceChannelCount)
-            {
-                int len = (int)strlen(value) + 1;
-                char * seq = new char[len];
-                memcpy(seq, value, len);
-                info->channels[sequenceNumber] = seq;
-            }
-        }
-
-//         printf("%s", buf);
+        return 0;
     }
 
-    return info;
+    FILINFO info;
+    char longFileNameBuffer[_MAX_LFN + 1];
+    info.lfname = longFileNameBuffer;
+    info.lfsize = sizeof(longFileNameBuffer);
+    while (true)
+    {
+        result = f_readdir(&dir, &info);
+        if (result != FR_OK || info.fname[0] == 0)
+        {
+            break;
+        }
+        const char * filename = info.lfname[0] ? info.lfname : info.fname;
+        printf("%s%s%s (%d bytes)\n", path, filename, (info.fattrib & AM_DIR) ? "/" : "", info.fsize);
+
+        SequenceInfo * lastSequence = 0;
+        if (isdigit(filename[0]) && filename[1] == '.' && info.fsize > 0)
+        {
+            char * buf = (char *)malloc(info.fsize);
+            if (!buf)
+            {
+                printf("Failed to allocate file buffer\n");
+                continue;
+            }
+
+            static FIL fp;
+            FRESULT result;
+            result = f_open(&fp, filename, FA_READ | FA_OPEN_EXISTING);
+            if (result != FR_OK)
+            {
+                printf("Failed to open file\n");
+                return 0;
+            }
+
+            UINT btr = info.fsize;
+            result = f_read(&fp, buf, btr, &btr);
+            if (result != FR_OK)
+            {
+                printf("Failed to read file\n");
+                return 0;
+            }
+            f_close(&fp);
+
+            printf("Processing sequence file: %s\n", filename);
+            SequenceInfo * seqInfo = parse(buf);
+            if (!seqInfo)
+            {
+                continue;
+            }
+
+            if (!*head)
+            {
+                *head = seqInfo;
+            }
+            else
+            {
+                lastSequence->next = seqInfo;
+            }
+            lastSequence = seqInfo;
+            ++sequenceCount;
+        }
+    }
+    f_closedir(&dir);
+
+    return sequenceCount;
 }
 
 //------------------------------------------------------------------------------

@@ -38,7 +38,7 @@
 #include "sine_osc.h"
 #include "square_osc.h"
 #include "sequencer.h"
-#include "sequence_reader.h"
+#include "sequence_file_reader.h"
 #include "audio_mixer.h"
 #include "delay_line.h"
 #include "rbj_filter.h"
@@ -430,10 +430,9 @@ void init_audio_synth()
 
 void init_fs()
 {
-    SequenceReader * reader = new SequenceReader();
-    assert(reader);
-    reader->init();
-    g_sequenceCount = reader->scan_dir("/", &g_firstSequence);
+    SequenceFileReader reader;
+    reader.init();
+    g_sequenceCount = reader.scan_dir("/", &g_firstSequence);
 
     if (g_sequenceCount == 0)
     {
