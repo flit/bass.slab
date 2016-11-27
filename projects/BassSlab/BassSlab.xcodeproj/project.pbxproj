@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		0211C3231DD5481100E85D5F /* synth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0211C3221DD5481100E85D5F /* synth.cpp */; };
-		0211C3261DD7D83E00E85D5F /* OscilloscopeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0211C3251DD7D83E00E85D5F /* OscilloscopeView.m */; };
+		0211C3261DD7D83E00E85D5F /* OscilloscopeView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0211C3251DD7D83E00E85D5F /* OscilloscopeView.mm */; };
 		0211C32D1DD8E89500E85D5F /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C3271DD8E89500E85D5F /* AVFoundation.framework */; };
 		0211C32E1DD8E89500E85D5F /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C3281DD8E89500E85D5F /* AVKit.framework */; };
 		0211C32F1DD8E89500E85D5F /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C3291DD8E89500E85D5F /* CoreAudio.framework */; };
 		0211C3301DD8E89500E85D5F /* CoreAudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C32A1DD8E89500E85D5F /* CoreAudioKit.framework */; };
 		0211C3311DD8E89500E85D5F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0211C32B1DD8E89500E85D5F /* QuartzCore.framework */; };
+		0211C33C1DEA2CBD00E85D5F /* SampleCollector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0211C33A1DEA2CBD00E85D5F /* SampleCollector.cpp */; };
+		0211C33F1DEA409400E85D5F /* sequence_reader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0211C33D1DEA409400E85D5F /* sequence_reader.cpp */; };
 		022743021DCE8E0C003ADE1A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 022743011DCE8E0C003ADE1A /* AppDelegate.mm */; };
 		022743051DCE8E0C003ADE1A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 022743041DCE8E0C003ADE1A /* main.m */; };
 		022743071DCE8E0C003ADE1A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 022743061DCE8E0C003ADE1A /* Assets.xcassets */; };
@@ -35,12 +37,16 @@
 		0211C3211DD547BF00E85D5F /* synth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = synth.h; sourceTree = "<group>"; };
 		0211C3221DD5481100E85D5F /* synth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = synth.cpp; sourceTree = "<group>"; };
 		0211C3241DD7D83E00E85D5F /* OscilloscopeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscilloscopeView.h; sourceTree = "<group>"; };
-		0211C3251DD7D83E00E85D5F /* OscilloscopeView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OscilloscopeView.m; sourceTree = "<group>"; };
+		0211C3251DD7D83E00E85D5F /* OscilloscopeView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OscilloscopeView.mm; sourceTree = "<group>"; };
 		0211C3271DD8E89500E85D5F /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		0211C3281DD8E89500E85D5F /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		0211C3291DD8E89500E85D5F /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		0211C32A1DD8E89500E85D5F /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
 		0211C32B1DD8E89500E85D5F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		0211C33A1DEA2CBD00E85D5F /* SampleCollector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SampleCollector.cpp; sourceTree = "<group>"; };
+		0211C33B1DEA2CBD00E85D5F /* SampleCollector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SampleCollector.h; sourceTree = "<group>"; };
+		0211C33D1DEA409400E85D5F /* sequence_reader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sequence_reader.cpp; path = ../../src/app/sequence_reader.cpp; sourceTree = "<group>"; };
+		0211C33E1DEA409400E85D5F /* sequence_reader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sequence_reader.h; path = ../../src/app/sequence_reader.h; sourceTree = "<group>"; };
 		022742FD1DCE8E0C003ADE1A /* BassSlab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BassSlab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		022743001DCE8E0C003ADE1A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		022743011DCE8E0C003ADE1A /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -107,6 +113,8 @@
 		022742FF1DCE8E0C003ADE1A /* BassSlab */ = {
 			isa = PBXGroup;
 			children = (
+				0211C33A1DEA2CBD00E85D5F /* SampleCollector.cpp */,
+				0211C33B1DEA2CBD00E85D5F /* SampleCollector.h */,
 				022743001DCE8E0C003ADE1A /* AppDelegate.h */,
 				022743011DCE8E0C003ADE1A /* AppDelegate.mm */,
 				0211C3201DD5477B00E85D5F /* arm_math.h */,
@@ -117,7 +125,7 @@
 				0211C3211DD547BF00E85D5F /* synth.h */,
 				0211C3221DD5481100E85D5F /* synth.cpp */,
 				0211C3241DD7D83E00E85D5F /* OscilloscopeView.h */,
-				0211C3251DD7D83E00E85D5F /* OscilloscopeView.m */,
+				0211C3251DD7D83E00E85D5F /* OscilloscopeView.mm */,
 			);
 			path = BassSlab;
 			sourceTree = "<group>";
@@ -139,6 +147,8 @@
 				022743391DCE8F1C003ADE1A /* delay_line.h */,
 				0227433A1DCE8F1C003ADE1A /* rbj_filter.cpp */,
 				0227433B1DCE8F1C003ADE1A /* rbj_filter.h */,
+				0211C33D1DEA409400E85D5F /* sequence_reader.cpp */,
+				0211C33E1DEA409400E85D5F /* sequence_reader.h */,
 				022743401DCE8F1C003ADE1A /* sequencer.cpp */,
 				022743411DCE8F1C003ADE1A /* sequencer.h */,
 				022743421DCE8F1C003ADE1A /* sine_osc.cpp */,
@@ -239,9 +249,11 @@
 				0227434C1DCE8F1C003ADE1A /* rbj_filter.cpp in Sources */,
 				0227434A1DCE8F1C003ADE1A /* audio_ramp.cpp in Sources */,
 				022743461DCE8F1C003ADE1A /* asr_envelope.cpp in Sources */,
-				0211C3261DD7D83E00E85D5F /* OscilloscopeView.m in Sources */,
+				0211C33F1DEA409400E85D5F /* sequence_reader.cpp in Sources */,
+				0211C3261DD7D83E00E85D5F /* OscilloscopeView.mm in Sources */,
 				0227434B1DCE8F1C003ADE1A /* delay_line.cpp in Sources */,
 				022743051DCE8E0C003ADE1A /* main.m in Sources */,
+				0211C33C1DEA2CBD00E85D5F /* SampleCollector.cpp in Sources */,
 				0227434F1DCE8F1C003ADE1A /* sequencer.cpp in Sources */,
 				022743021DCE8E0C003ADE1A /* AppDelegate.mm in Sources */,
 			);
@@ -279,6 +291,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -326,6 +339,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;

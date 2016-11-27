@@ -40,7 +40,7 @@ void Synth::init()
 
     _bassSeq.set_sample_rate(_sampleRate);
     _bassSeq.set_tempo(100.0f);
-    _bassSeq.set_sequence("--s>>>>p--------"); //"--s>>>p-----s>>>>>>p----");
+    _bassSeq.set_sequence("--s20>>>>p--------"); //"--s>>>p-----s>>>>>>p----");
     _bassSeq.init();
 
     _bassGen.set_sample_rate(_sampleRate);
@@ -72,31 +72,31 @@ void Synth::init()
     _mixer.set_input(1, &_bassGen, 0.34f);
 }
 
+void Synth::reinit(const char * sequence)
+{
+    SequenceInfo * seq = _reader.parse(sequence);
+    if (!seq)
+    {
+        return;
+    }
+
+    _kickSeq.set_sequence(seq->channels[0]);
+    _kickSeq.set_tempo(seq->tempo);
+    _bassSeq.set_sequence(seq->channels[1]);
+    _bassSeq.set_tempo(seq->tempo);
+
+    _kickSeq.init();
+    _kickGen.init();
+    _bassSeq.init();
+    _bassGen.init();
+
+    _delay.set_delay_samples(_kickSeq.get_samples_per_beat());
+
+    delete seq;
+}
+
 void Synth::render(float *samples, uint32_t count)
 {
-//    uint32_t half = count / 2;
-//    count -= half;
-//    while (half--)
-//    {
-//        *samples++ = 0.8;
-//    }
-//    while (count--)
-//    {
-//        *samples++ = -0.8;
-//    }
-
     _mixer.process(samples, count);
-
-//    _kickGen.process(_renderBuf.get(), count);
-//    _kickGen.process(samples, count);
-
-    // Mono to stereo.
-//    float *cursor = _renderBuf.get();
-//    while (--count)
-//    {
-//        float s = *cursor++;
-//        *samples++ = s;
-//        *samples++ = s;
-//    }
 }
 

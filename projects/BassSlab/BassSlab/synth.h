@@ -17,6 +17,7 @@
 #include "audio_mixer.h"
 #include "delay_line.h"
 #include "rbj_filter.h"
+#include "sequence_reader.h"
 #include <memory>
 
 namespace slab {
@@ -28,6 +29,7 @@ public:
     ~Synth();
 
     void init();
+    void reinit(const char * sequence);
     
     void render(float *samples, uint32_t count);
 
@@ -44,6 +46,7 @@ private:
     RBJFilter _filter;
     DelayLine _delay;
 
+    SequenceReader _reader;
 };
 
 } // namespace slab

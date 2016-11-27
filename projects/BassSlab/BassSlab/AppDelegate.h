@@ -18,9 +18,5 @@
     AudioQueueBufferRef _buffers[3];
 }
 
-- (void)queueCallback:(AudioQueueRef _Nonnull)inAQ buffer:(AudioQueueBufferRef _Nonnull)inBuffer;
-
-- (void)siphon:(AudioQueueProcessingTapRef)inAQTap inFrames:(UInt32)inNumberFrames timeStamp:(AudioTimeStamp *)ioTimeStamp outFrames:(UInt32 *)outNumberFrames data:(AudioBufferList *)ioData;
-
 @end
 

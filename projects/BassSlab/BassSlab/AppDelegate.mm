@@ -17,7 +17,10 @@ const uint32_t kBufferSize = 1024;
 
 @property (weak) IBOutlet NSWindow *window;
 @property (weak) IBOutlet NSButton *startStopButton;
+@property () IBOutlet NSTextView *sequenceField;
 @property (weak) IBOutlet OscilloscopeView *oscope;
+
+- (void)queueCallback:(AudioQueueRef _Nonnull)inAQ buffer:(AudioQueueBufferRef _Nonnull)inBuffer;
 
 @end
 
@@ -26,20 +29,7 @@ void MyAudioQueuePropertyListenerProc(void * inUserData, AudioQueueRef inAQ, Aud
 	UInt32 isRunning = 0;
 	UInt32 size = sizeof(isRunning);
 	AudioQueueGetProperty(inAQ, kAudioQueueProperty_IsRunning, &isRunning, &size);
-    NSLog(@"isRunning = %d", isRunning);
-}
-
-void MyAudioQueueProcessingTapCallback(
-        void *                          inClientData,
-        AudioQueueProcessingTapRef      inAQTap,
-        UInt32                          inNumberFrames,
-        AudioTimeStamp *                ioTimeStamp,
-        AudioQueueProcessingTapFlags *  ioFlags,
-        UInt32 *                        outNumberFrames,
-        AudioBufferList *               ioData)
-{
-    AppDelegate *_self = (__bridge AppDelegate *)inClientData;
-    [_self siphon:inAQTap inFrames:inNumberFrames timeStamp:ioTimeStamp outFrames:outNumberFrames data:ioData];
+//    NSLog(@"isRunning = %d", isRunning);
 }
 
 @implementation AppDelegate
@@ -72,27 +62,14 @@ void MyAudioQueueProcessingTapCallback(
 
     AudioQueueSetParameter(_audioQueue, kAudioQueueParam_Volume, 1.0);
 
-//    UInt32 maxFrames;
-//    AudioStreamBasicDescription tapFormat;
-//    AudioQueueProcessingTapRef tap;
-//    status = AudioQueueProcessingTapNew(_audioQueue, MyAudioQueueProcessingTapCallback, (__bridge void *)self, kAudioQueueProcessingTap_Siphon, &maxFrames, &tapFormat, &tap);
-//    if (status)
-//    {
-//        NSLog(@"AudioQueueProcessingTapNew = %d", status);
-//    }
-
     // Allocate buffers and prime the queue.
     AudioQueueBufferRef buf;
     int i;
-//    _isPlaying = true;
     for (i = 0; i < 3; ++i)
     {
         AudioQueueAllocateBuffer(_audioQueue, kBufferSize, &buf);
         _buffers[i] = buf;
-
-//        [self queueCallback:_audioQueue buffer:buf];
     }
-//    _isPlaying = false;
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
@@ -106,6 +83,7 @@ void MyAudioQueueProcessingTapCallback(
     OSStatus status;
     if (!_isPlaying)
     {
+        _synth->reinit(_sequenceField.string.UTF8String);
         _isPlaying = true;
 
         // Prime the queue.
@@ -151,11 +129,6 @@ void MyAudioQueueProcessingTapCallback(
             NSLog(@"AudioQueueEnqueueBuffer = %d", status);
         }
     }
-}
-
-- (void)siphon:(AudioQueueProcessingTapRef)inAQTap inFrames:(UInt32)inNumberFrames timeStamp:(AudioTimeStamp *)ioTimeStamp outFrames:(UInt32 *)outNumberFrames data:(AudioBufferList *)ioData
-{
-    NSLog(@"siphon tap: %g", ioTimeStamp->mSampleTime);
 }
 
 @end
