@@ -65,7 +65,7 @@ void MyAudioQueuePropertyListenerProc(void * inUserData, AudioQueueRef inAQ, Aud
     // Allocate buffers and prime the queue.
     AudioQueueBufferRef buf;
     int i;
-    for (i = 0; i < 3; ++i)
+    for (i = 0; i < AUDIO_QUEUE_BUFFER_COUNT; ++i)
     {
         AudioQueueAllocateBuffer(_audioQueue, kBufferSize, &buf);
         _buffers[i] = buf;
@@ -88,7 +88,7 @@ void MyAudioQueuePropertyListenerProc(void * inUserData, AudioQueueRef inAQ, Aud
 
         // Prime the queue.
         int i;
-        for (i = 0; i < 3; ++i)
+        for (i = 0; i < AUDIO_QUEUE_BUFFER_COUNT; ++i)
         {
             [self queueCallback:_audioQueue buffer:_buffers[i]];
         }

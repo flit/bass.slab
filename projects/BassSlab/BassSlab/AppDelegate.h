@@ -10,12 +10,14 @@
 #import <AudioToolbox/AudioQueue.h>
 #include "synth.h"
 
+#define AUDIO_QUEUE_BUFFER_COUNT (5)
+
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 {
     AudioQueueRef _audioQueue;
     bool _isPlaying;
     slab::Synth *_synth;
-    AudioQueueBufferRef _buffers[3];
+    AudioQueueBufferRef _buffers[AUDIO_QUEUE_BUFFER_COUNT];
 }
 
 @end
