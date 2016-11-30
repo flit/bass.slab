@@ -102,7 +102,7 @@ void AudioRamp::reset()
 
 float AudioRamp::next()
 {
-    float result;
+    float result = 0.0;
     process(&result, 1);
     return result;
 }
