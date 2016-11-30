@@ -13,11 +13,13 @@ const float kSampleRate = 48000.0f;
 const uint32_t kChannelCount = 1;
 const uint32_t kBufferSize = 1024;
 
+NSString * const kSequenceStringKey = @"sequence";
+
 @interface AppDelegate ()
 
 @property (weak) IBOutlet NSWindow *window;
 @property (weak) IBOutlet NSButton *startStopButton;
-@property () IBOutlet NSTextView *sequenceField;
+@property () IBOutlet NSTextView *sequenceField; // Cannot be weak.
 @property (weak) IBOutlet OscilloscopeView *oscope;
 
 - (void)queueCallback:(AudioQueueRef _Nonnull)inAQ buffer:(AudioQueueBufferRef _Nonnull)inBuffer;
@@ -36,9 +38,18 @@ void MyAudioQueuePropertyListenerProc(void * inUserData, AudioQueueRef inAQ, Aud
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+    // Restore sequence text.
+    NSString * seq = [[NSUserDefaults standardUserDefaults] stringForKey:kSequenceStringKey];
+    if (seq)
+    {
+        _sequenceField.string = seq;
+    }
+
+    // Init synth.
     _synth = new slab::Synth(kSampleRate);
     _synth->init();
 
+    // Create audio format description for 32-bit float.
     AudioStreamBasicDescription format;
     format.mSampleRate = kSampleRate;
     format.mFormatID = kAudioFormatLinearPCM;
@@ -49,6 +60,7 @@ void MyAudioQueuePropertyListenerProc(void * inUserData, AudioQueueRef inAQ, Aud
     format.mChannelsPerFrame = kChannelCount;
     format.mBitsPerChannel = 32;
 
+    // Create audio queue.
     OSStatus status = AudioQueueNewOutputWithDispatchQueue(&_audioQueue, &format, 0, dispatch_queue_create("audio", NULL),
         ^(AudioQueueRef  _Nonnull inAQ, AudioQueueBufferRef  _Nonnull inBuffer) {
             [self queueCallback:inAQ buffer:inBuffer];
@@ -129,6 +141,11 @@ void MyAudioQueuePropertyListenerProc(void * inUserData, AudioQueueRef inAQ, Aud
             NSLog(@"AudioQueueEnqueueBuffer = %d", status);
         }
     }
+}
+
+- (void)textDidChange:(NSNotification *)notification
+{
+    [[NSUserDefaults standardUserDefaults] setObject:_sequenceField.string forKey:kSequenceStringKey];
 }
 
 @end
