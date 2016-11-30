@@ -78,22 +78,31 @@ public:
         Event * m_next;
         int32_t m_timestamp;
         event_type m_event;
+        int32_t m_value;
 
-        Event(int32_t timestamp=0) : m_next(NULL), m_timestamp(timestamp), m_event(kInvalidEvent) {}
+        Event(int32_t timestamp=0)
+        :   m_next(NULL),
+            m_timestamp(timestamp),
+            m_event(kInvalidEvent),
+            m_value(0)
+        {
+        }
     };
 
     Sequencer();
     ~Sequencer() {}
 
-    void set_sample_rate(float rate) { m_sampleRate = rate; }
-    void set_tempo(float tempo) { m_tempo = tempo; }
-    void set_sequence(const char * seq) { m_sequence = seq; }
+    void set_sample_rate(float rate);
+    void set_tempo(float tempo);
+    void set_sequence(const char * seq);
 
     uint32_t get_samples_per_beat() { return m_samplesPerBeat; }
 
     void init();
 
     Event get_next_event(uint32_t count);
+
+    void append_event(const Event & event);
 
 protected:
 
@@ -114,6 +123,7 @@ protected:
     uint32_t m_sequenceTime; //!< Length of time in samples of the entire sequence.
     uint32_t m_elapsed;
 
+    void free_all();
     void enqueue_sequence(uint32_t startOffset);
 
     Event * pop_free_event();

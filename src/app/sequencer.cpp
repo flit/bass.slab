@@ -50,31 +50,45 @@ Sequencer::Sequencer()
     m_sequenceTime(0),
     m_elapsed(0)
 {
-    memset(m_events, 0, sizeof(Event));
+    memset(m_events, 0, sizeof(m_events));
 }
 
 void Sequencer::init()
 {
+    // Don't try to calculate anything until all required parameters are set.
+    if (m_sampleRate == 0.0 || m_tempo == 0.0 || m_sequence == NULL)
+    {
+        return;
+    }
+
     m_samplesPerBeat = static_cast<uint32_t>(m_sampleRate * 60.0f / m_tempo);
 
     m_sequenceLength = (uint32_t)strlen(m_sequence);
     m_sequenceTime = m_sequenceLength * m_samplesPerBeat;
 
-    m_firstEvent = NULL;
-    m_lastEvent = NULL;
-    m_elapsed = 0;
-
     // Put all events on free list.
-    int i;
-    m_freeEvents = &m_events[0];
-    for (i = 0; i < kMaxEvents - 1; ++i)
-    {
-        m_events[i].m_next = &m_events[i + 1];
-    }
-    m_events[i].m_next = NULL;
+    free_all();
 
     // Queue up the sequence.
     enqueue_sequence(0);
+}
+
+void Sequencer::set_sample_rate(float rate)
+{
+    m_sampleRate = rate;
+    init();
+}
+
+void Sequencer::set_tempo(float tempo)
+{
+    m_tempo = tempo;
+    init();
+}
+
+void Sequencer::set_sequence(const char * seq)
+{
+    m_sequence = seq;
+    init();
 }
 
 Sequencer::Event Sequencer::get_next_event(uint32_t count)
@@ -110,40 +124,76 @@ Sequencer::Event Sequencer::get_next_event(uint32_t count)
     return result;
 }
 
+void Sequencer::free_all()
+{
+    m_firstEvent = NULL;
+    m_lastEvent = NULL;
+    m_elapsed = 0;
+
+    int i;
+    m_freeEvents = &m_events[0];
+    for (i = 0; i < kMaxEvents - 1; ++i)
+    {
+        m_events[i].m_next = &m_events[i + 1];
+    }
+    m_events[i].m_next = NULL;
+}
+
 void Sequencer::enqueue_sequence(uint32_t startOffset)
 {
     uint32_t timestamp = startOffset;
     int i;
+    int32_t note;
     for (i = 0; i < m_sequenceLength; ++i)
     {
         char c = m_sequence[i];
-        Event * ev = NULL;
+        Event ev(timestamp);
 
-        if (c == 'x')
+        switch (c)
         {
-            ev = pop_free_event();
-            ev->m_timestamp = timestamp;
-            ev->m_event = kTriggerEvent;
-        }
-        else if (c == 's')
-        {
-            ev = pop_free_event();
-            ev->m_timestamp = timestamp;
-            ev->m_event = kNoteStartEvent;
-        }
-        else if (c == 'p')
-        {
-            ev = pop_free_event();
-            ev->m_timestamp = timestamp;
-            ev->m_event = kNoteStopEvent;
+            case 'x':
+                ev.m_event = kTriggerEvent;
+                break;
+            case 's':
+            {
+                ev.m_event = kNoteStartEvent;
+                note = 0;
+                while ((i + 1) < m_sequenceLength)
+                {
+                    c = m_sequence[i + 1];
+                    if (c >= '0' && c <= '9')
+                    {
+                        note = (note * 10) + (c - '0');
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    ++i;
+                }
+                ev.m_value = note;
+                break;
+            }
+            case 'p':
+                ev.m_event = kNoteStopEvent;
+                break;
+            default:
+                continue;
         }
 
-        if (ev)
-        {
-            append_event(ev);
-        }
+        append_event(ev);
 
         timestamp += m_samplesPerBeat;
+    }
+}
+
+void Sequencer::append_event(const Event & event)
+{
+    Event * ev = pop_free_event();
+    if (ev)
+    {
+        *ev = event;
+        append_event(ev);
     }
 }
 
