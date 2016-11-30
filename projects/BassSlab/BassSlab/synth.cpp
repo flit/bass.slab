@@ -26,10 +26,10 @@ void Synth::init()
 {
     _kickSeq.set_sample_rate(_sampleRate);
     _kickSeq.set_tempo(100.0f);
-    _kickSeq.set_sequence("x---x---x---x-x-x---x---x---x---xx--x--x--xxx-x-");
-//    _kickSeq.set_sequence("x---------x---------"); //x-x----xx---");
+    _kickSeq.set_sequence("x---");
     _kickSeq.init();
 
+    _kickGen.set_shape(Oscillator::kSaw);
     _kickGen.set_sample_rate(_sampleRate);
     _kickGen.set_sequence(&_kickSeq);
     _kickGen.set_freq(120.0f);
@@ -40,9 +40,10 @@ void Synth::init()
 
     _bassSeq.set_sample_rate(_sampleRate);
     _bassSeq.set_tempo(100.0f);
-    _bassSeq.set_sequence("--s20>>>>p--------"); //"--s>>>p-----s>>>>>>p----");
+    _bassSeq.set_sequence("----");
     _bassSeq.init();
 
+    _bassGen.set_shape(Oscillator::kTriangle);
     _bassGen.set_sample_rate(_sampleRate);
     _bassGen.set_sequence(&_bassSeq);
     _bassGen.set_freq(250.0f);
@@ -52,18 +53,18 @@ void Synth::init()
     _bassGen.set_release(3.0f);
 
     _filter.set_sample_rate(_sampleRate);
-    _filter.set_frequency(120.0f);
-    _filter.set_q(0.4f);
+    _filter.set_frequency(360.0f);
+    _filter.set_q(0.85f);
     _filter.recompute_coefficients();
-    _filter.set_input(&_bassGen);
+    _filter.set_input(&_kickGen);
 
     _delay.set_sample_rate(_sampleRate);
-    _delay.set_maximum_delay_seconds(0.4f);
+    _delay.set_maximum_delay_seconds(10.0f);
     _delay.set_delay_samples(_kickSeq.get_samples_per_beat());
     _delay.set_feedback(0.7f);
     _delay.set_wet_mix(0.5f);
     _delay.set_dry_mix(0.8f);
-    _delay.set_input(&_kickGen);
+    _delay.set_input(&_filter);
 
     AudioBuffer mixBuf(_mixBuf.get(), 1024);
     _mixer.set_buffer(mixBuf);

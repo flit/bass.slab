@@ -191,6 +191,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/src/app/nanolib_stubs.c</locationURI>
 		</link>
 		<link>
+			<name>app/osc.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/osc.cpp</locationURI>
+		</link>
+		<link>
+			<name>app/osc.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/src/app/osc.h</locationURI>
+		</link>
+		<link>
 			<name>app/pin_irq_manager.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/src/app/pin_irq_manager.cpp</locationURI>
@@ -259,26 +269,6 @@
 			<name>app/sequencer.h</name>
 			<type>1</type>
 			<locationURI>PARENT-5-ECLIPSE_HOME/_personal/bass.slab/src/app/sequencer.h</locationURI>
-		</link>
-		<link>
-			<name>app/sine_osc.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/app/sine_osc.cpp</locationURI>
-		</link>
-		<link>
-			<name>app/sine_osc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/app/sine_osc.h</locationURI>
-		</link>
-		<link>
-			<name>app/square_osc.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/app/square_osc.cpp</locationURI>
-		</link>
-		<link>
-			<name>app/square_osc.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/app/square_osc.h</locationURI>
 		</link>
 		<link>
 			<name>argon/ar_classes.h</name>

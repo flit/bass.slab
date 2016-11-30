@@ -35,8 +35,7 @@
 #include "audio_filter.h"
 #include "audio_ramp.h"
 #include "asr_envelope.h"
-#include "sine_osc.h"
-#include "square_osc.h"
+#include "osc.h"
 #include "sequencer.h"
 #include "sequence_file_reader.h"
 #include "audio_mixer.h"
@@ -114,12 +113,10 @@ const float kSampleRate = 32000.0f; // 32kHz
 
 AudioOutput g_audioOut;
 AudioOutputConverter g_audioOutConverter;
-SineGenerator g_kickGen;
+Oscillator g_kickGen;
 Sequencer g_kickSeq;
-SineGenerator g_bassGen;
+Oscillator g_bassGen;
 Sequencer g_bassSeq;
-// SineGenerator g_tickGen;
-// Sequencer g_tickSeq;
 AudioMixer g_mixer;
 RBJFilter g_filter;
 DelayLine g_delay;
@@ -392,19 +389,6 @@ void init_audio_synth()
     g_bassGen.init();
     g_bassGen.set_attack(0.3f);
     g_bassGen.set_release(3.0f);
-
-//     g_tickSeq.set_sample_rate(kSampleRate);
-//     g_tickSeq.set_tempo(100.0f);
-//     g_tickSeq.set_sequence("----x-----x-");
-//     g_tickSeq.init();
-//
-//     g_tickGen.set_sample_rate(kSampleRate);
-//     g_tickGen.set_sequence(&g_tickSeq);
-//     g_tickGen.set_freq(4000.0f);
-//     g_tickGen.enable_sustain(false);
-//     g_tickGen.init();
-//     g_tickGen.set_attack(0.04f);
-//     g_tickGen.set_release(0.3f);
 
     g_filter.set_sample_rate(kSampleRate);
     g_filter.set_frequency(120.0f);

@@ -12,7 +12,7 @@
 #include "audio_filter.h"
 #include "audio_ramp.h"
 #include "asr_envelope.h"
-#include "sine_osc.h"
+#include "osc.h"
 #include "sequencer.h"
 #include "audio_mixer.h"
 #include "delay_line.h"
@@ -38,9 +38,9 @@ private:
     std::unique_ptr<float[]> _mixBuf;
     std::unique_ptr<float[]> _renderBuf;
 
-    SineGenerator _kickGen;
+    Oscillator _kickGen;
     Sequencer _kickSeq;
-    SineGenerator _bassGen;
+    Oscillator _bassGen;
     Sequencer _bassSeq;
     AudioMixer _mixer;
     RBJFilter _filter;

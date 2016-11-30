@@ -430,8 +430,8 @@
                                     <attributedString key="textStorage">
                                         <fragment>
                                             <string key="content">tempo=120
-0=x---x---x---x-x-x---x---x---x---xx--x--x--xxx-x-
-1=--s20&gt;&gt;&gt;&gt;p--------</string>
+0=x---
+1=----</string>
                                             <attributes>
                                                 <font key="NSFont" metaFont="fixedUser" size="11"/>
                                                 <integer key="NSLigature" value="0"/>
@@ -446,6 +446,9 @@
                                         </fragment>
                                     </attributedString>
                                     <color key="insertionPointColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <connections>
+                                        <outlet property="delegate" destination="Voe-Tx-rLC" id="B2H-iy-GaV"/>
+                                    </connections>
                                 </textView>
                             </subviews>
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>

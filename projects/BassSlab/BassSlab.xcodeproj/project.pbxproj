@@ -28,7 +28,7 @@
 		0227434B1DCE8F1C003ADE1A /* delay_line.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743381DCE8F1C003ADE1A /* delay_line.cpp */; };
 		0227434C1DCE8F1C003ADE1A /* rbj_filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0227433A1DCE8F1C003ADE1A /* rbj_filter.cpp */; };
 		0227434F1DCE8F1C003ADE1A /* sequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743401DCE8F1C003ADE1A /* sequencer.cpp */; };
-		022743501DCE8F1C003ADE1A /* sine_osc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743421DCE8F1C003ADE1A /* sine_osc.cpp */; };
+		022743501DCE8F1C003ADE1A /* osc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022743421DCE8F1C003ADE1A /* osc.cpp */; };
 		022743541DCFE111003ADE1A /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 022743531DCFE111003ADE1A /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
 
@@ -70,8 +70,8 @@
 		0227433B1DCE8F1C003ADE1A /* rbj_filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rbj_filter.h; path = ../../src/app/rbj_filter.h; sourceTree = "<group>"; };
 		022743401DCE8F1C003ADE1A /* sequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sequencer.cpp; path = ../../src/app/sequencer.cpp; sourceTree = "<group>"; };
 		022743411DCE8F1C003ADE1A /* sequencer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sequencer.h; path = ../../src/app/sequencer.h; sourceTree = "<group>"; };
-		022743421DCE8F1C003ADE1A /* sine_osc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sine_osc.cpp; path = ../../src/app/sine_osc.cpp; sourceTree = "<group>"; };
-		022743431DCE8F1C003ADE1A /* sine_osc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sine_osc.h; path = ../../src/app/sine_osc.h; sourceTree = "<group>"; };
+		022743421DCE8F1C003ADE1A /* osc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = osc.cpp; path = ../../src/app/osc.cpp; sourceTree = "<group>"; };
+		022743431DCE8F1C003ADE1A /* osc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = osc.h; path = ../../src/app/osc.h; sourceTree = "<group>"; };
 		022743531DCFE111003ADE1A /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -151,8 +151,8 @@
 				0211C33E1DEA409400E85D5F /* sequence_reader.h */,
 				022743401DCE8F1C003ADE1A /* sequencer.cpp */,
 				022743411DCE8F1C003ADE1A /* sequencer.h */,
-				022743421DCE8F1C003ADE1A /* sine_osc.cpp */,
-				022743431DCE8F1C003ADE1A /* sine_osc.h */,
+				022743421DCE8F1C003ADE1A /* osc.cpp */,
+				022743431DCE8F1C003ADE1A /* osc.h */,
 			);
 			name = src;
 			sourceTree = "<group>";
@@ -243,7 +243,7 @@
 			files = (
 				022743491DCE8F1C003ADE1A /* audio_mixer.cpp in Sources */,
 				022743471DCE8F1C003ADE1A /* audio_buffer.cpp in Sources */,
-				022743501DCE8F1C003ADE1A /* sine_osc.cpp in Sources */,
+				022743501DCE8F1C003ADE1A /* osc.cpp in Sources */,
 				022743481DCE8F1C003ADE1A /* audio_filter.cpp in Sources */,
 				0211C3231DD5481100E85D5F /* synth.cpp in Sources */,
 				0227434C1DCE8F1C003ADE1A /* rbj_filter.cpp in Sources */,
