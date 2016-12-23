@@ -63,6 +63,9 @@ public:
     void set_length_in_seconds(EnvelopeStage stage, float seconds);
     void set_length_in_samples(EnvelopeStage stage, uint32_t samples);
 
+    void set_attack(float seconds) { set_length_in_seconds(kAttack, seconds); }
+    void set_release(float seconds) { set_length_in_seconds(kRelease, seconds); }
+
     float get_length_in_seconds(EnvelopeStage stage);
     uint32_t get_length_in_samples(EnvelopeStage stage);
 

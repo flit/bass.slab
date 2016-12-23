@@ -162,6 +162,7 @@ void ASREnvelope::trigger()
     m_attack.reset();
     m_release.reset();
     m_elapsedSamples = 0;
+    m_releaseOffset = 0;
     m_isTriggered = true;
 }
 
